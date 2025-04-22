@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: nlp_comentarios
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
@@ -18,7 +18,7 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/nlp_comentarios
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/nlp_comentarios
 
 volumes:
   pgdata:

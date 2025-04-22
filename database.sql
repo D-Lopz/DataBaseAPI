@@ -1,269 +1,196 @@
-
--- ================================
--- Esquema completo para PostgreSQL
--- Proyecto: NLP Comentarios
--- ================================
-
--- Creación de base de datos
-CREATE DATABASE nlp_comentarios
-    WITH ENCODING 'UTF8'
-    LC_COLLATE='en_US.utf8'
-    LC_CTYPE='en_US.utf8'
-    TEMPLATE=template0;
-
--- Cambiar de base de datos
--- \c nlp_comentarios
+-- Base de Datos NLP2
+CREATE DATABASE nlp_comentarios;
+\c nlp_comentarios;
 
 -- Tipos ENUM
-CREATE TYPE tipo_rol AS ENUM ('admin', 'docente', 'estudiante');
+CREATE TYPE rol_usuario AS ENUM ('Administrador', 'Estudiante', 'Docente');
+CREATE TYPE estado_evaluacion AS ENUM ('Activo', 'Inactivo');
+CREATE TYPE tipo_sentimiento AS ENUM ('Positivo', 'Negativo', 'Neutral');
+CREATE TYPE tipo_formato AS ENUM ('PDF', 'Excel');
 
--- Tablas
-CREATE TABLE usuarios (
-    id UUID PRIMARY KEY,
-    nombre_completo VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    tipo_documento VARCHAR(50) NOT NULL,
-    numero_documento VARCHAR(50) UNIQUE NOT NULL,
-    rol tipo_rol NOT NULL,
-    departamento VARCHAR(100),
-    password_hash VARCHAR(255) NOT NULL,
-    estado BOOLEAN DEFAULT TRUE,
-    metadata JSONB,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- Tabla de Usuarios
+CREATE TABLE Usuarios (
+    id_usuario SERIAL PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    rol rol_usuario NOT NULL,
+    contrasena_hash VARCHAR(255) NOT NULL,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE programas (
-    id UUID PRIMARY KEY,
-    codigo VARCHAR(50) UNIQUE NOT NULL,
-    nombre VARCHAR(255) NOT NULL,
-    descripcion TEXT,
-    estado BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- Tabla de Asignaturas
+CREATE TABLE Asignaturas (
+    id_asignatura SERIAL PRIMARY KEY,
+    nombre_asignatura VARCHAR(100) NOT NULL,
+    id_docente INT REFERENCES Usuarios(id_usuario)
 );
 
-CREATE TABLE asignaturas (
-    id UUID PRIMARY KEY,
-    programa_id UUID REFERENCES programas(id),
-    codigo VARCHAR(50) UNIQUE NOT NULL,
-    nombre VARCHAR(255) NOT NULL,
-    creditos INTEGER NOT NULL,
-    semestre INTEGER NOT NULL,
-    descripcion TEXT,
-    estado BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE periodos_academicos (
-    id UUID PRIMARY KEY,
-    codigo VARCHAR(50) UNIQUE NOT NULL,
-    nombre VARCHAR(255) NOT NULL,
+-- Tabla de Evaluaciones
+CREATE TABLE Evaluaciones (
+    id_evaluacion SERIAL PRIMARY KEY,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
-    estado BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+    estado estado_evaluacion DEFAULT 'Inactivo',
+    descripcion TEXT
 );
 
-CREATE TABLE matriculas (
-    id UUID PRIMARY KEY,
-    docente_id UUID REFERENCES usuarios(id),
-    asignatura_id UUID REFERENCES asignaturas(id),
-    periodo_id UUID REFERENCES periodos_academicos(id),
-    grupo VARCHAR(50) NOT NULL,
-    estado BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (docente_id, asignatura_id, periodo_id, grupo)
+-- Tabla de Comentarios
+CREATE TABLE Comentarios (
+    id_comentario SERIAL PRIMARY KEY,
+    id_estudiante INT REFERENCES Usuarios(id_usuario),
+    id_docente INT REFERENCES Usuarios(id_usuario),
+    id_asignatura INT REFERENCES Asignaturas(id_asignatura),
+    id_evaluacion INT REFERENCES Evaluaciones(id_evaluacion),
+    comentario TEXT NOT NULL,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE evaluaciones (
-    id UUID PRIMARY KEY,
-    matricula_id UUID REFERENCES matriculas(id),
-    fecha_inicio TIMESTAMPTZ NOT NULL,
-    fecha_fin TIMESTAMPTZ NOT NULL,
-    estado BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- Tabla de Análisis de Sentimientos
+CREATE TABLE AnalisisSentimientos (
+    id_analisis SERIAL PRIMARY KEY,
+    id_comentario INT REFERENCES Comentarios(id_comentario),
+    sentimiento tipo_sentimiento,
+    resumen TEXT,
+    puntuacion DECIMAL(3,2)
 );
 
-CREATE TABLE criterios_evaluacion (
-    id UUID PRIMARY KEY,
-    nombre VARCHAR(255) NOT NULL,
-    descripcion TEXT,
-    peso NUMERIC(3,2) NOT NULL CHECK (peso > 0 AND peso <= 1),
-    estado BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE respuestas_evaluacion (
-    id UUID PRIMARY KEY,
-    evaluacion_id UUID REFERENCES evaluaciones(id),
-    criterio_id UUID REFERENCES criterios_evaluacion(id),
-    estudiante_id UUID REFERENCES usuarios(id),
-    calificacion INTEGER CHECK (calificacion >= 1 AND calificacion <= 5),
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (evaluacion_id, criterio_id, estudiante_id)
-);
-
-CREATE TABLE comentarios (
-    id UUID PRIMARY KEY,
-    evaluacion_id UUID REFERENCES evaluaciones(id),
-    estudiante_id UUID REFERENCES usuarios(id),
-    texto TEXT NOT NULL,
-    anonimo BOOLEAN DEFAULT TRUE,
-    estado BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE analisis_nlp (
-    id UUID PRIMARY KEY,
-    comentario_id UUID REFERENCES comentarios(id),
-    sentimiento NUMERIC(4,3) NOT NULL,
-    categoria VARCHAR(50) NOT NULL,
-    palabras_clave JSONB NOT NULL,
-    entidades JSONB,
-    embedding JSONB,
-    metadata JSONB,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE reportes (
-    id UUID PRIMARY KEY,
-    evaluacion_id UUID REFERENCES evaluaciones(id),
-    tipo VARCHAR(50) NOT NULL,
-    contenido JSONB NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+-- Tabla de Reportes
+CREATE TABLE Reportes (
+    id_reporte SERIAL PRIMARY KEY,
+    id_docente INT REFERENCES Usuarios(id_usuario),
+    fecha_generacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    contenido TEXT,
+    formato tipo_formato
 );
 
 -- Índices
-CREATE INDEX idx_usuarios_rol ON usuarios(rol);
-CREATE INDEX idx_usuarios_estado ON usuarios(estado);
-CREATE INDEX idx_asignaturas_programa ON asignaturas(programa_id);
-CREATE INDEX idx_matriculas_docente ON matriculas(docente_id);
-CREATE INDEX idx_matriculas_periodo ON matriculas(periodo_id);
-CREATE INDEX idx_evaluaciones_matricula ON evaluaciones(matricula_id);
-CREATE INDEX idx_comentarios_evaluacion ON comentarios(evaluacion_id);
-CREATE INDEX idx_comentarios_estudiante ON comentarios(estudiante_id);
-CREATE INDEX idx_analisis_comentario ON analisis_nlp(comentario_id);
-CREATE INDEX idx_reportes_evaluacion ON reportes(evaluacion_id);
+CREATE INDEX idx_usuario_rol ON Usuarios(rol);
+CREATE INDEX idx_comentario_fecha ON Comentarios(fecha_creacion);
+CREATE INDEX idx_analisis_sentimiento ON AnalisisSentimientos(sentimiento);
 
--- Funciones y triggers
-
-CREATE OR REPLACE FUNCTION check_periodo_dates_fn()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.fecha_fin <= NEW.fecha_inicio THEN
-        RAISE EXCEPTION 'La fecha de fin debe ser posterior a la fecha de inicio';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_periodo_dates
-BEFORE INSERT ON periodos_academicos
-FOR EACH ROW EXECUTE FUNCTION check_periodo_dates_fn();
-
-CREATE OR REPLACE FUNCTION check_evaluacion_dates_fn()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF NEW.fecha_fin <= NEW.fecha_inicio THEN
-        RAISE EXCEPTION 'La fecha de fin debe ser posterior a la fecha de inicio';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER check_evaluacion_dates
-BEFORE INSERT ON evaluaciones
-FOR EACH ROW EXECUTE FUNCTION check_evaluacion_dates_fn();
-
--- Funciones para consultas
-
-CREATE OR REPLACE FUNCTION GetTeacherStats(teacher_id UUID)
-RETURNS TABLE(
-    total_comentarios INTEGER,
-    promedio_sentimiento NUMERIC,
-    comentarios_positivos INTEGER,
-    comentarios_neutrales INTEGER,
-    comentarios_negativos INTEGER
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT 
-        COUNT(c.id),
-        AVG(a.sentimiento),
-        COUNT(CASE WHEN a.sentimiento >= 0.5 THEN 1 END),
-        COUNT(CASE WHEN a.sentimiento BETWEEN -0.5 AND 0.5 THEN 1 END),
-        COUNT(CASE WHEN a.sentimiento < -0.5 THEN 1 END)
-    FROM comentarios c
-    JOIN analisis_nlp a ON c.id = a.comentario_id
-    JOIN evaluaciones e ON c.evaluacion_id = e.id
-    JOIN matriculas m ON e.matricula_id = m.id
-    WHERE m.docente_id = teacher_id;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION InsertarComentarioConAnalisis(
-    p_id UUID,
-    p_evaluacion_id UUID,
-    p_estudiante_id UUID,
-    p_texto TEXT,
-    p_sentimiento NUMERIC(4,3),
-    p_categoria VARCHAR,
-    p_palabras_clave JSONB,
-    p_entidades JSONB,
-    p_embedding JSONB
-)
+-- FUNCIONES (CRUD por tabla)
+-- Usuarios
+CREATE OR REPLACE FUNCTION CrearUsuario(nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_hash_in VARCHAR)
 RETURNS VOID AS $$
-DECLARE
-    nuevo_id UUID := gen_random_uuid();
 BEGIN
-    INSERT INTO comentarios (id, evaluacion_id, estudiante_id, texto)
-    VALUES (p_id, p_evaluacion_id, p_estudiante_id, p_texto);
-
-    INSERT INTO analisis_nlp (
-        id,
-        comentario_id,
-        sentimiento,
-        categoria,
-        palabras_clave,
-        entidades,
-        embedding
-    )
-    VALUES (
-        nuevo_id,
-        p_id,
-        p_sentimiento,
-        p_categoria,
-        p_palabras_clave,
-        p_entidades,
-        p_embedding
-    );
+    INSERT INTO Usuarios (nombre, email, rol, contrasena_hash)
+    VALUES (nombre_in, email_in, rol_in, contrasena_hash_in);
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION GetSimilarComments(
-    comment_id UUID,
-    limit_count INTEGER
-)
-RETURNS TABLE(id UUID, texto TEXT, embedding JSONB) AS $$
+CREATE OR REPLACE FUNCTION LeerUsuario(id INT)
+RETURNS TABLE(id_usuario INT, nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena_hash VARCHAR, fecha_creacion TIMESTAMP)
+AS $$
 BEGIN
-    RETURN QUERY
-    SELECT 
-        c.id,
-        c.texto,
-        a.embedding
-    FROM comentarios c
-    JOIN analisis_nlp a ON c.id = a.comentario_id
-    WHERE c.id != comment_id
-    LIMIT limit_count;
+    RETURN QUERY SELECT * FROM Usuarios WHERE id_usuario = id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ActualizarUsuario(id INT, nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_hash_in VARCHAR)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE Usuarios SET nombre = nombre_in, email = email_in, rol = rol_in, contrasena_hash = contrasena_hash_in
+    WHERE id_usuario = id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION EliminarUsuario(id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM Usuarios WHERE id_usuario = id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Asignaturas
+CREATE OR REPLACE FUNCTION CrearAsignatura(nombre_in VARCHAR, id_docente_in INT)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Asignaturas (nombre_asignatura, id_docente) VALUES (nombre_in, id_docente_in);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION LeerAsignatura(id INT)
+RETURNS TABLE(id_asignatura INT, nombre_asignatura VARCHAR, id_docente INT)
+AS $$
+BEGIN
+    RETURN QUERY SELECT * FROM Asignaturas WHERE id_asignatura = id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ActualizarAsignatura(id INT, nombre_in VARCHAR, id_docente_in INT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE Asignaturas SET nombre_asignatura = nombre_in, id_docente = id_docente_in WHERE id_asignatura = id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION EliminarAsignatura(id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM Asignaturas WHERE id_asignatura = id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Evaluaciones
+CREATE OR REPLACE FUNCTION CrearEvaluacion(fecha_inicio_in DATE, fecha_fin_in DATE, estado_in estado_evaluacion, descripcion_in TEXT)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Evaluaciones (fecha_inicio, fecha_fin, estado, descripcion)
+    VALUES (fecha_inicio_in, fecha_fin_in, estado_in, descripcion_in);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION LeerEvaluacion(id INT)
+RETURNS TABLE(id_evaluacion INT, fecha_inicio DATE, fecha_fin DATE, estado estado_evaluacion, descripcion TEXT)
+AS $$
+BEGIN
+    RETURN QUERY SELECT * FROM Evaluaciones WHERE id_evaluacion = id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ActualizarEvaluacion(id INT, fecha_inicio_in DATE, fecha_fin_in DATE, estado_in estado_evaluacion, descripcion_in TEXT)
+RETURNS VOID AS $$
+BEGIN
+    UPDATE Evaluaciones SET fecha_inicio = fecha_inicio_in, fecha_fin = fecha_fin_in,
+    estado = estado_in, descripcion = descripcion_in WHERE id_evaluacion = id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION EliminarEvaluacion(id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM Evaluaciones WHERE id_evaluacion = id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Comentarios
+CREATE OR REPLACE FUNCTION InsertarComentario(idEst INT, idDoc INT, idAsig INT, idEval INT, comentarioTexto TEXT)
+RETURNS VOID AS $$
+BEGIN
+    INSERT INTO Comentarios (id_estudiante, id_docente, id_asignatura, id_evaluacion, comentario)
+    VALUES (idEst, idDoc, idAsig, idEval, comentarioTexto);
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION LeerComentario(id INT)
+RETURNS TABLE(id_comentario INT, id_estudiante INT, id_docente INT, id_asignatura INT, id_evaluacion INT, comentario TEXT, fecha_creacion TIMESTAMP)
+AS $$
+BEGIN
+    RETURN QUERY SELECT * FROM Comentarios WHERE id_comentario = id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- CREATE OR REPLACE FUNCTION ActualizarComentario(id INT, id_est INT, id_doc INT, id_asig INT, id_eval INT, comentario_in TEXT)
+-- RETURNS VOID AS $$
+-- BEGIN
+--     UPDATE Comentarios SET id_estudiante = id_est, id_docente = id_doc, id_asignatura = id_asig,
+--     id_evaluacion = id_eval, comentario = comentario_in WHERE id_comentario = id;
+-- END;
+-- $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION EliminarComentario(id INT)
+RETURNS VOID AS $$
+BEGIN
+    DELETE FROM Comentarios WHERE id_comentario = id;
 END;
 $$ LANGUAGE plpgsql;
