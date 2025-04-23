@@ -13,8 +13,8 @@ class UserCreate(UserBase):
 class UserUpdate(BaseModel):
     nombre: str | None = None
     email: str | None = None
-    password: str | None = None
     rol: str | None = None
+    password: str | None = None
 
 class UserResponse(UserBase):
     id: int
@@ -25,15 +25,17 @@ class UserResponse(UserBase):
 # CRUD para asignaturas
 
 class AsignaturaBase(BaseModel):
-    nombre: str
-    descripcion: str
+
+    nombre_asignatura: str
+    id_docente: int
 
 class AsignaturaCreate(AsignaturaBase):
     pass
 
 class AsignaturaUpdate(BaseModel):
+
     nombre: str | None = None
-    descripcion: str | None = None
+    id_docente: int | None = None
 
 class AsignaturaResponse(AsignaturaBase):
     id_asignatura: int
@@ -41,18 +43,26 @@ class AsignaturaResponse(AsignaturaBase):
     class Config:
         orm_mode = True
 
-# CRUD para evaluaciones
+
+# CRUD para comentarios
 
 class EvaluacionBase(BaseModel):
-    id_usuario: int
-    id_asignatura: int
-    calificacion: float
+
+    fecha_inicio: str
+    fecha_fin: str     
+    estado: str        
+    descripcion: str   
 
 class EvaluacionCreate(EvaluacionBase):
+
     pass
 
 class EvaluacionUpdate(BaseModel):
-    calificacion: float | None = None
+
+    fecha_inicio: str | None = None
+    fecha_fin: str | None = None
+    estado: str | None = None
+    descripcion: str | None = None
 
 class EvaluacionResponse(EvaluacionBase):
     id_evaluacion: int
@@ -60,21 +70,25 @@ class EvaluacionResponse(EvaluacionBase):
     class Config:
         orm_mode = True
 
+
 # CRUD para comentarios
 
 class ComentarioBase(BaseModel):
-    id_usuario: int
-    id_asignatura: int
-    contenido: str
+    id_estudiante: int
+    id_docente: int     
+    id_asignatura: int    
+    id_evaluacion: int   
+    contenido: str       
 
 class ComentarioCreate(ComentarioBase):
     pass
 
 class ComentarioUpdate(BaseModel):
-    contenido: str | None = None
+    contenido: str | None = None  
 
 class ComentarioResponse(ComentarioBase):
     id_comentario: int
 
     class Config:
         orm_mode = True
+

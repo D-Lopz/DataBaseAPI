@@ -1,9 +1,24 @@
 from fastapi import FastAPI, Depends, HTTPException
-from sqlalchemy.orm import Session
-from database import SessionLocal, engine, Base
-from schemas import UserCreate, UserResponse, UserUpdate
 from fastapi.middleware.cors import CORSMiddleware
+from database import SessionLocal, engine, Base
+from sqlalchemy.orm import Session
 import crud
+
+from schemas import (
+    UserCreate, UserResponse, UserUpdate,
+    AsignaturaCreate, AsignaturaResponse, AsignaturaUpdate,
+    EvaluacionCreate, EvaluacionResponse, EvaluacionUpdate,
+    ComentarioCreate, ComentarioResponse, ComentarioUpdate
+)
+from sqlalchemy import create_engine
+
+#Corroboración de la conexion a la base de datos
+try:
+    engine.connect()  # Intenta conectar
+    print("Conexión exitosa a la base de datos")
+except Exception as e:
+    print(f"Error al conectar a la base de datos: {e}")
+
 
 app = FastAPI()
 Base.metadata.create_all(bind=engine)
@@ -16,7 +31,7 @@ def get_db():
     finally:
         db.close()
 
-# CRUD para usuarios
+# ---------------------- Rutas para usuarios ----------------------#
 
 @app.post("/usuarios/", response_model=UserResponse)
 
@@ -27,13 +42,6 @@ def crear_usuario(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="No se pudo crear el usuario")
 
     return nuevo
-
-
-@app.get("/usuarios/", response_model=list[UserResponse])
-
-def obtener_usuarios(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_users(db, skip=skip, limit=limit)
-
 
 @app.get("/usuarios/{user_id}", response_model=UserResponse)
 
@@ -67,9 +75,7 @@ def eliminar_usuario(user_id: int, db: Session = Depends(get_db)):
 
     return eliminado
 
-# CRUD para asignaturas
-
-from schemas import AsignaturaCreate, AsignaturaUpdate, AsignaturaResponse  # Asegúrate de que existan
+# ---------------------- Rutas para asignaturas ----------------------#
 
 @app.post("/asignaturas/", response_model=AsignaturaResponse)
 
@@ -80,12 +86,6 @@ def crear_asignatura(asignatura: AsignaturaCreate, db: Session = Depends(get_db)
         raise HTTPException(status_code=400, detail="No se pudo crear la asignatura")
 
     return nueva
-
-
-@app.get("/asignaturas/", response_model=list[AsignaturaResponse])
-
-def obtener_asignaturas(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_asignaturas(db, skip=skip, limit=limit)
 
 
 @app.get("/asignaturas/{id_asignatura}", response_model=AsignaturaResponse)
@@ -111,11 +111,57 @@ def actualizar_asignatura(id_asignatura: int, asignatura: AsignaturaUpdate, db: 
 
 def eliminar_asignatura(id_asignatura: int, db: Session = Depends(get_db)):
     eliminada = crud.delete_asignatura(db, id_asignatura)
-    
+
     if eliminada is None:
         raise HTTPException(status_code=404, detail="Asignatura no encontrada")
     return eliminada
 
-# CRUD para evaluaciones
+# ---------------------- Rutas para evaluaciones ----------------------#
 
-# CRUD para comentarios
+@app.post("/evaluaciones/", response_model=EvaluacionResponse)
+
+def crear_evaluacion(evaluacion: EvaluacionCreate, db: Session = Depends(get_db)):
+    return crud.create_evaluacion(db, evaluacion)
+
+
+@app.get("/evaluaciones/{evaluacion_id}", response_model=EvaluacionResponse)
+
+def obtener_evaluacion(evaluacion_id: int, db: Session = Depends(get_db)):
+    return crud.get_evaluacion(db, evaluacion_id)
+
+@app.put("/evaluaciones/{evaluacion_id}", response_model=EvaluacionResponse)
+
+def actualizar_evaluacion(evaluacion_id: int, evaluacion: EvaluacionUpdate, db: Session = Depends(get_db)):
+    return crud.update_evaluacion(db, evaluacion_id, evaluacion)
+
+
+@app.delete("/evaluaciones/{evaluacion_id}", response_model=EvaluacionResponse)
+
+def eliminar_evaluacion(evaluacion_id: int, db: Session = Depends(get_db)):
+    return crud.delete_evaluacion(db, evaluacion_id)
+
+
+# ---------------------- Rutas para comentarios ----------------------#
+
+@app.post("/comentarios/", response_model=ComentarioResponse)
+
+def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)):
+    return crud.create_comentario(db, comentario)
+
+
+@app.get("/comentarios/{comentario_id}", response_model=ComentarioResponse)
+
+def obtener_comentario(comentario_id: int, db: Session = Depends(get_db)):
+    return crud.get_comentario(db, comentario_id)
+
+
+@app.put("/comentarios/{comentario_id}", response_model=ComentarioResponse)
+
+def actualizar_comentario(comentario_id: int, comentario: ComentarioUpdate, db: Session = Depends(get_db)):
+    return crud.update_comentario(db, comentario_id, comentario)
+
+
+@app.delete("/comentarios/{comentario_id}", response_model=ComentarioResponse)
+
+def eliminar_comentario(comentario_id: int, db: Session = Depends(get_db)):
+    return crud.delete_comentario(db, comentario_id)

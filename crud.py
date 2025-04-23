@@ -11,29 +11,23 @@ def get_user(db: Session, user_id: int):
     return result.fetchone()
 
 
-def get_users(db: Session, skip: int = 0, limit: int = 10):
-
-    result = db.execute(text("SELECT * FROM LeerUsuario(:skip, :limit)"), {"skip": skip, "limit": limit})
-    return result.fetchall()
-
-
 def create_user(db: Session, user):
 
-    hashed_password = hash_password(user.password)
     db.execute(text("""
         CALL CrearUsuario(:nombre, :email, :rol, :contrasena)
     """), {
         "nombre": user.nombre,
         "email": user.email,
         "rol": user.rol,
-        "contrasena": hashed_password
+        "contrasena": user.password  # Pasamos la contraseña en texto plano (sin hash)
     })
     db.commit()
+    
     return {"message": "Usuario creado con éxito"}
 
 
 def update_user(db: Session, user_id: int, user_update):
-
+    
     db.execute(text("""
         CALL ActualizarUsuario(:id_usuario, :nombre, :email, :rol, :contrasena)
     """), {
@@ -41,10 +35,12 @@ def update_user(db: Session, user_id: int, user_update):
         "nombre": user_update.nombre,
         "email": user_update.email,
         "rol": user_update.rol,
-        "contrasena": hash_password(user_update.password) if user_update.password else None
+        "contrasena": user_update.password if user_update.password else None  
     })
     db.commit()
     return {"message": "Usuario actualizado con éxito"}
+
+
 
 
 def delete_user(db: Session, user_id: int):
@@ -57,10 +53,10 @@ def delete_user(db: Session, user_id: int):
 # --------------------- Asignaturas --------------------- #
 
 # Obtener todas las asignaturas
-def get_asignaturas(db: Session, skip: int = 0, limit: int = 10):
-
-    result = db.execute(text("SELECT * FROM LeerAsignatura(:skip, :limit)"), {"skip": skip, "limit": limit})
-    return result.fetchall()
+def get_asignatura(db: Session, asignatura_id: int):
+    
+    result = db.execute(text("SELECT * FROM LeerAsignatura(:id)"), {"id": asignatura_id})
+    return result.fetchone()
 
 
 # Crear una asignatura
@@ -74,6 +70,7 @@ def create_asignatura(db: Session, asignatura):
     })
     db.commit()
     return {"message": "Asignatura creada con éxito"}
+
 
 # Actualizar una asignatura
 def update_asignatura(db: Session, asignatura_id: int, asignatura_update):
@@ -146,14 +143,15 @@ def get_comentarios(db: Session, evaluacion_id: int):
 
 # Crear un comentario
 def create_comentario(db: Session, comentario):
+
     db.execute(text("""
-        CALL InsertarComentario(:id_estudiante, :id_docente, :id_asignatura, :id_evaluacion, :comentario)
+        CALL InsertarComentario(:idEst, :idDoc, :idAsig, :idEval, :comentarioTexto)
     """), {
-        "id_estudiante": comentario.id_estudiante,
-        "id_docente": comentario.id_docente,
-        "id_asignatura": comentario.id_asignatura,
-        "id_evaluacion": comentario.id_evaluacion,
-        "comentario": comentario.comentario
+        "idEst": comentario.id_estudiante,
+        "idDoc": comentario.id_docente,
+        "idAsig": comentario.id_asignatura,
+        "idEval": comentario.id_evaluacion,
+        "comentarioTexto": comentario.contenido
     })
     db.commit()
     return {"message": "Comentario creado con éxito"}

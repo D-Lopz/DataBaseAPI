@@ -14,7 +14,7 @@ CREATE TABLE Usuarios (
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     rol rol_usuario NOT NULL,
-    contrasena_hash VARCHAR(255) NOT NULL,
+    contrasena VARCHAR(255) NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -63,6 +63,39 @@ CREATE TABLE Reportes (
     formato tipo_formato
 );
 
+
+-- Inserciones para la tabla Usuarios
+INSERT INTO Usuarios (nombre, email, rol, contrasena)
+VALUES 
+('Nicolas Vargas','nicolas@hotmail.com','Estudiante','123'),
+('Ana Maria','ana@hotmail.com','Docente','123'),
+('Pablo Diago','diago@hotmail.com','Administrador','123');
+
+-- Inserciones para la tabla Asignaturas
+-- Nota: Se asume que 'Ana Maria' tiene id_usuario = 2
+INSERT INTO Asignaturas (nombre_asignatura, id_docente)
+VALUES
+('Ingeniera de software', 2),
+('Base de datos', 2),
+('Complejidad Algoritmica', 2);
+
+-- Inserciones para la tabla Evaluaciones
+INSERT INTO Evaluaciones (fecha_inicio, fecha_fin, estado, descripcion)
+VALUES
+  ('2025-03-01', '2025-03-31', 'Activo', 'Evaluación del primer trimestre.'),
+  ('2025-06-01', '2025-06-30', 'Inactivo', 'Evaluación del segundo trimestre.'),
+  ('2025-09-01', '2025-09-30', 'Inactivo', 'Evaluación del tercer trimestre.');
+
+-- Inserciones para la tabla Comentarios
+-- Se asume que 'Nicolas Vargas' tiene id_usuario = 1
+-- y las asignaturas tienen los IDs 1, 2 y 3 en orden
+-- y la evaluación 1 es la activa
+INSERT INTO Comentarios (id_estudiante, id_docente, id_asignatura, id_evaluacion, comentario)
+VALUES
+(1, 2, 1, 1, 'La profesora explica muy bien los temas.'),
+(1, 2, 2, 2, 'Las clases fueron interesantes pero algo rápidas.'),
+(1, 2, 3, 1, 'Me gustó el enfoque práctico que se usó.');
+
 -- Índices
 CREATE INDEX idx_usuario_rol ON Usuarios(rol);
 CREATE INDEX idx_comentario_fecha ON Comentarios(fecha_creacion);
@@ -70,26 +103,26 @@ CREATE INDEX idx_analisis_sentimiento ON AnalisisSentimientos(sentimiento);
 
 -- FUNCIONES (CRUD por tabla)
 -- Usuarios
-CREATE OR REPLACE FUNCTION CrearUsuario(nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_hash_in VARCHAR)
+CREATE OR REPLACE FUNCTION CrearUsuario(nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_in VARCHAR)
 RETURNS VOID AS $$
 BEGIN
-    INSERT INTO Usuarios (nombre, email, rol, contrasena_hash)
-    VALUES (nombre_in, email_in, rol_in, contrasena_hash_in);
+    INSERT INTO Usuarios (nombre, email, rol, contrasena)
+    VALUES (nombre_in, email_in, rol_in, contrasena_in);
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION LeerUsuario(id INT)
-RETURNS TABLE(id_usuario INT, nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena_hash VARCHAR, fecha_creacion TIMESTAMP)
+RETURNS TABLE(id_usuario INT, nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena VARCHAR, fecha_creacion TIMESTAMP)
 AS $$
 BEGIN
     RETURN QUERY SELECT * FROM Usuarios WHERE id_usuario = id;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION ActualizarUsuario(id INT, nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_hash_in VARCHAR)
+CREATE OR REPLACE FUNCTION ActualizarUsuario(id INT, nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_in VARCHAR)
 RETURNS VOID AS $$
 BEGIN
-    UPDATE Usuarios SET nombre = nombre_in, email = email_in, rol = rol_in, contrasena_hash = contrasena_hash_in
+    UPDATE Usuarios SET nombre = nombre_in, email = email_in, rol = rol_in, contrasena = contrasena_in
     WHERE id_usuario = id;
 END;
 $$ LANGUAGE plpgsql;

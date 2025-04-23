@@ -9,7 +9,7 @@ class User(Base):
     nombre = Column(String, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     rol = Column(String, nullable=False)
-    contrasena_hash = Column(String, nullable=False)
+    contrasena = Column(String, nullable=False)
     fecha_creacion = Column(DateTime, server_default=func.now())
 
 
