@@ -115,9 +115,13 @@ CREATE OR REPLACE FUNCTION LeerUsuario(id INT)
 RETURNS TABLE(id_usuario INT, nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena VARCHAR, fecha_creacion TIMESTAMP)
 AS $$
 BEGIN
-    RETURN QUERY SELECT * FROM Usuarios WHERE id_usuario = id;
+    RETURN QUERY
+    SELECT u.id_usuario, u.nombre, u.email, u.rol, u.contrasena, u.fecha_creacion
+    FROM Usuarios u
+    WHERE u.id_usuario = id;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION ActualizarUsuario(id INT, nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_in VARCHAR)
 RETURNS VOID AS $$
@@ -146,9 +150,13 @@ CREATE OR REPLACE FUNCTION LeerAsignatura(id INT)
 RETURNS TABLE(id_asignatura INT, nombre_asignatura VARCHAR, id_docente INT)
 AS $$
 BEGIN
-    RETURN QUERY SELECT * FROM Asignaturas WHERE id_asignatura = id;
+    RETURN QUERY
+    SELECT a.id_asignatura, a.nombre_asignatura, a.id_docente
+    FROM Asignaturas a
+    WHERE a.id_asignatura = id;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION ActualizarAsignatura(id INT, nombre_in VARCHAR, id_docente_in INT)
 RETURNS VOID AS $$
@@ -177,9 +185,13 @@ CREATE OR REPLACE FUNCTION LeerEvaluacion(id INT)
 RETURNS TABLE(id_evaluacion INT, fecha_inicio DATE, fecha_fin DATE, estado estado_evaluacion, descripcion TEXT)
 AS $$
 BEGIN
-    RETURN QUERY SELECT * FROM Evaluaciones WHERE id_evaluacion = id;
+    RETURN QUERY
+    SELECT e.id_evaluacion, e.fecha_inicio, e.fecha_fin, e.estado, e.descripcion
+    FROM Evaluaciones e
+    WHERE e.id_evaluacion = id;
 END;
 $$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION ActualizarEvaluacion(id INT, fecha_inicio_in DATE, fecha_fin_in DATE, estado_in estado_evaluacion, descripcion_in TEXT)
 RETURNS VOID AS $$
@@ -209,9 +221,13 @@ CREATE OR REPLACE FUNCTION LeerComentario(id INT)
 RETURNS TABLE(id_comentario INT, id_estudiante INT, id_docente INT, id_asignatura INT, id_evaluacion INT, comentario TEXT, fecha_creacion TIMESTAMP)
 AS $$
 BEGIN
-    RETURN QUERY SELECT * FROM Comentarios WHERE id_comentario = id;
+    RETURN QUERY
+    SELECT c.id_comentario, c.id_estudiante, c.id_docente, c.id_asignatura, c.id_evaluacion, c.comentario, c.fecha_creacion
+    FROM Comentarios c
+    WHERE c.id_comentario = id;
 END;
 $$ LANGUAGE plpgsql;
+
 
 -- CREATE OR REPLACE FUNCTION ActualizarComentario(id INT, id_est INT, id_doc INT, id_asig INT, id_eval INT, comentario_in TEXT)
 -- RETURNS VOID AS $$

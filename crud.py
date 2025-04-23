@@ -96,9 +96,10 @@ def delete_asignatura(db: Session, asignatura_id: int):
 # --------------------- Evaluaciones --------------------- #
 
 # Obtener todas las evaluaciones
-def get_evaluaciones(db: Session, skip: int = 0, limit: int = 10):
-    result = db.execute(text("SELECT * FROM LeerEvaluacion(:skip, :limit)"), {"skip": skip, "limit": limit})
-    return result.fetchall()
+def get_evaluacion(db: Session, evaluacion_id: int):
+
+    result = db.execute(text("SELECT * FROM LeerEvaluacion(:id)"), {"id": evaluacion_id})
+    return result.fetchone()
 
 # Crear una evaluación
 def create_evaluacion(db: Session, evaluacion):
