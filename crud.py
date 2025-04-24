@@ -16,7 +16,7 @@ def create_user(db: Session, user):
     db.execute(text("""
         CALL CrearUsuario(:nombre, :email, :rol, :contrasena)
     """), {
-        "nombre": user.nombre,
+        "nombre": user.nombre_in,
         "email": user.email,
         "rol": user.rol,
         "contrasena": user.password  # Pasamos la contraseña en texto plano (sin hash)
