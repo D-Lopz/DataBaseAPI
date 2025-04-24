@@ -127,7 +127,11 @@ def crear_evaluacion(evaluacion: EvaluacionCreate, db: Session = Depends(get_db)
 @app.get("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
 
 def obtener_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
-    return crud.get_evaluacion(db, id_evaluacion)
+    evaluacion = crud.get_evaluacion(db, id_evaluacion)
+    
+    if evaluacion is None:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+    return evaluacion
 
 @app.put("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
 
@@ -149,19 +153,23 @@ def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)
     return crud.create_comentario(db, comentario)
 
 
-@app.get("/comentarios/{comentario_id}", response_model=ComentarioResponse)
+@app.get("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 
-def obtener_comentario(comentario_id: int, db: Session = Depends(get_db)):
-    return crud.get_comentario(db, comentario_id)
+def obtener_comentario(id_comentario: int, db: Session = Depends(get_db)):
+    comentario = crud.get_comentario(db, id_comentario)
 
-
-@app.put("/comentarios/{comentario_id}", response_model=ComentarioResponse)
-
-def actualizar_comentario(comentario_id: int, comentario: ComentarioUpdate, db: Session = Depends(get_db)):
-    return crud.update_comentario(db, comentario_id, comentario)
+    if comentario is None:
+        raise HTTPException(status_code=404, detail="comentario no encontrada")
+    return comentario
 
 
-@app.delete("/comentarios/{comentario_id}", response_model=ComentarioResponse)
+@app.put("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 
-def eliminar_comentario(comentario_id: int, db: Session = Depends(get_db)):
-    return crud.delete_comentario(db, comentario_id)
+def actualizar_comentario(id_comentario: int, comentario: ComentarioUpdate, db: Session = Depends(get_db)):
+    return crud.update_comentario(db, id_comentario, comentario)
+
+
+@app.delete("/comentarios/{id_comentario}", response_model=ComentarioResponse)
+
+def eliminar_comentario(id_comentario: int, db: Session = Depends(get_db)):
+    return crud.delete_comentario(db, id_comentario)

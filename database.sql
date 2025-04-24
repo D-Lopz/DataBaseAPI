@@ -103,13 +103,15 @@ CREATE INDEX idx_analisis_sentimiento ON AnalisisSentimientos(sentimiento);
 
 -- FUNCIONES (CRUD por tabla)
 -- Usuarios
-CREATE OR REPLACE FUNCTION CrearUsuario(nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_in VARCHAR)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE CrearUsuario(nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena VARCHAR)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     INSERT INTO Usuarios (nombre, email, rol, contrasena)
-    VALUES (nombre_in, email_in, rol_in, contrasena_in);
+    VALUES (nombre, email, rol, contrasena);
 END;
-$$ LANGUAGE plpgsql;
+$$;
+
 
 CREATE OR REPLACE FUNCTION LeerUsuario(id INT)
 RETURNS TABLE(id_usuario INT, nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena VARCHAR, fecha_creacion TIMESTAMP)
@@ -123,28 +125,31 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION ActualizarUsuario(id INT, nombre_in VARCHAR, email_in VARCHAR, rol_in rol_usuario, contrasena_in VARCHAR)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE ActualizarUsuario(id INT, nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena VARCHAR)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    UPDATE Usuarios SET nombre = nombre_in, email = email_in, rol = rol_in, contrasena = contrasena_in
+    UPDATE Usuarios SET nombre = nombre, email = email, rol = rol, contrasena = contrasena
     WHERE id_usuario = id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-CREATE OR REPLACE FUNCTION EliminarUsuario(id INT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE EliminarUsuario(id INT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     DELETE FROM Usuarios WHERE id_usuario = id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Asignaturas
-CREATE OR REPLACE FUNCTION CrearAsignatura(nombre_in VARCHAR, id_docente_in INT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE CrearAsignatura(nombre VARCHAR, id_docente INT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    INSERT INTO Asignaturas (nombre_asignatura, id_docente) VALUES (nombre_in, id_docente_in);
+    INSERT INTO Asignaturas (nombre_asignatura, id_docente) VALUES (nombre, id_docente);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE OR REPLACE FUNCTION LeerAsignatura(id INT)
 RETURNS TABLE(id_asignatura INT, nombre_asignatura VARCHAR, id_docente INT)
@@ -158,28 +163,31 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION ActualizarAsignatura(id INT, nombre_in VARCHAR, id_docente_in INT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE ActualizarAsignatura(id INT, nombre VARCHAR, id_docente INT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    UPDATE Asignaturas SET nombre_asignatura = nombre_in, id_docente = id_docente_in WHERE id_asignatura = id;
+    UPDATE Asignaturas SET nombre_asignatura = nombre, id_docente = id_docente WHERE id_asignatura = id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-CREATE OR REPLACE FUNCTION EliminarAsignatura(id INT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE EliminarAsignatura(id INT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     DELETE FROM Asignaturas WHERE id_asignatura = id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Evaluaciones
-CREATE OR REPLACE FUNCTION CrearEvaluacion(fecha_inicio_in DATE, fecha_fin_in DATE, estado_in estado_evaluacion, descripcion_in TEXT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE CrearEvaluacion(fecha_inicio DATE, fecha_fin DATE, estado estado_evaluacion, descripcion TEXT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     INSERT INTO Evaluaciones (fecha_inicio, fecha_fin, estado, descripcion)
-    VALUES (fecha_inicio_in, fecha_fin_in, estado_in, descripcion_in);
+    VALUES (fecha_inicio, fecha_fin, estado, descripcion);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE OR REPLACE FUNCTION LeerEvaluacion(id INT)
 RETURNS TABLE(id_evaluacion INT, fecha_inicio DATE, fecha_fin DATE, estado estado_evaluacion, descripcion TEXT)
@@ -193,29 +201,32 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION ActualizarEvaluacion(id INT, fecha_inicio_in DATE, fecha_fin_in DATE, estado_in estado_evaluacion, descripcion_in TEXT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE ActualizarEvaluacion(id INT, fecha_inicio DATE, fecha_fin DATE, estado estado_evaluacion, descripcion TEXT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
-    UPDATE Evaluaciones SET fecha_inicio = fecha_inicio_in, fecha_fin = fecha_fin_in,
-    estado = estado_in, descripcion = descripcion_in WHERE id_evaluacion = id;
+    UPDATE Evaluaciones SET fecha_inicio = fecha_inicio, fecha_fin = fecha_fin,
+    estado = estado, descripcion = descripcion WHERE id_evaluacion = id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
-CREATE OR REPLACE FUNCTION EliminarEvaluacion(id INT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE EliminarEvaluacion(id INT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     DELETE FROM Evaluaciones WHERE id_evaluacion = id;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Comentarios
-CREATE OR REPLACE FUNCTION InsertarComentario(idEst INT, idDoc INT, idAsig INT, idEval INT, comentarioTexto TEXT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE InsertarComentario(id_estudiante INT, id_docente INT, id_asignatura INT, id_evaluacion INT, comentario TEXT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     INSERT INTO Comentarios (id_estudiante, id_docente, id_asignatura, id_evaluacion, comentario)
-    VALUES (idEst, idDoc, idAsig, idEval, comentarioTexto);
+    VALUES (id_estudiante, id_docente, id_asignatura, id_evaluacion, comentario);
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE OR REPLACE FUNCTION LeerComentario(id INT)
 RETURNS TABLE(id_comentario INT, id_estudiante INT, id_docente INT, id_asignatura INT, id_evaluacion INT, comentario TEXT, fecha_creacion TIMESTAMP)
@@ -237,9 +248,10 @@ $$ LANGUAGE plpgsql;
 -- END;
 -- $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION EliminarComentario(id INT)
-RETURNS VOID AS $$
+CREATE OR REPLACE PROCEDURE EliminarComentario(id INT)
+LANGUAGE plpgsql
+AS $$
 BEGIN
     DELETE FROM Comentarios WHERE id_comentario = id;
 END;
-$$ LANGUAGE plpgsql;
+$$;

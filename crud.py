@@ -16,7 +16,7 @@ def create_user(db: Session, user):
     db.execute(text("""
         CALL CrearUsuario(:nombre, :email, :rol, :contrasena)
     """), {
-        "nombre": user.nombre_in,
+        "nombre": user.nombre,
         "email": user.email,
         "rol": user.rol,
         "contrasena": user.password  # Pasamos la contraseña en texto plano (sin hash)
@@ -138,9 +138,9 @@ def delete_evaluacion(db: Session, evaluacion_id: int):
 # --------------------- Comentarios --------------------- #
 
 # Obtener todos los comentarios de una evaluación
-def get_comentarios(db: Session, evaluacion_id: int):
+def get_comentario(db: Session, evaluacion_id: int):
     result = db.execute(text("SELECT * FROM LeerComentario(:id_evaluacion)"), {"id_evaluacion": evaluacion_id})
-    return result.fetchall()
+    return result.fetchone()
 
 # Crear un comentario
 def create_comentario(db: Session, comentario):

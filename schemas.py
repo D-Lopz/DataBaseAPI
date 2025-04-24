@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from datetime import date
+
 
 # CRUD para usuarios
 
@@ -17,7 +19,7 @@ class UserUpdate(BaseModel):
     password: str | None = None
 
 class UserResponse(UserBase):
-    id: int
+    id_usuario: int
 
     class Config:
         orm_mode = True
@@ -48,8 +50,8 @@ class AsignaturaResponse(AsignaturaBase):
 
 class EvaluacionBase(BaseModel):
 
-    fecha_inicio: str
-    fecha_fin: str     
+    fecha_inicio: date
+    fecha_fin: date     
     estado: str        
     descripcion: str   
 
@@ -59,8 +61,8 @@ class EvaluacionCreate(EvaluacionBase):
 
 class EvaluacionUpdate(BaseModel):
 
-    fecha_inicio: str | None = None
-    fecha_fin: str | None = None
+    fecha_inicio: date | None = None
+    fecha_fin: date | None = None
     estado: str | None = None
     descripcion: str | None = None
 
