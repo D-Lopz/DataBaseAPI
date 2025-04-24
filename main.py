@@ -43,10 +43,10 @@ def crear_usuario(user: UserCreate, db: Session = Depends(get_db)):
 
     return nuevo
 
-@app.get("/usuarios/{user_id}", response_model=UserResponse)
+@app.get("/usuarios/{id_usuario}", response_model=UserResponse)
 
-def obtener_usuario(user_id: int, db: Session = Depends(get_db)):
-    user = crud.get_user(db, user_id)
+def obtener_usuario(id_usuario: int, db: Session = Depends(get_db)):
+    user = crud.get_user(db, id_usuario)
 
     if user is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -54,10 +54,10 @@ def obtener_usuario(user_id: int, db: Session = Depends(get_db)):
     return user
 
 
-@app.put("/usuarios/{user_id}", response_model=UserResponse)
+@app.put("/usuarios/{id_usuario}", response_model=UserResponse)
 
-def actualizar_usuario(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
-    actualizado = crud.update_user(db, user_id, user)
+def actualizar_usuario(id_usuario: int, user: UserUpdate, db: Session = Depends(get_db)):
+    actualizado = crud.update_user(db, id_usuario, user)
 
     if actualizado is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -65,10 +65,10 @@ def actualizar_usuario(user_id: int, user: UserUpdate, db: Session = Depends(get
     return actualizado
 
 
-@app.delete("/usuarios/{user_id}", response_model=UserResponse)
+@app.delete("/usuarios/{id_usuario}", response_model=UserResponse)
 
-def eliminar_usuario(user_id: int, db: Session = Depends(get_db)):
-    eliminado = crud.delete_user(db, user_id)
+def eliminar_usuario(id_usuario: int, db: Session = Depends(get_db)):
+    eliminado = crud.delete_user(db, id_usuario)
 
     if eliminado is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
@@ -124,21 +124,21 @@ def crear_evaluacion(evaluacion: EvaluacionCreate, db: Session = Depends(get_db)
     return crud.create_evaluacion(db, evaluacion)
 
 
-@app.get("/evaluaciones/{evaluacion_id}", response_model=EvaluacionResponse)
+@app.get("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
 
-def obtener_evaluacion(evaluacion_id: int, db: Session = Depends(get_db)):
-    return crud.get_evaluacion(db, evaluacion_id)
+def obtener_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
+    return crud.get_evaluacion(db, id_evaluacion)
 
-@app.put("/evaluaciones/{evaluacion_id}", response_model=EvaluacionResponse)
+@app.put("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
 
-def actualizar_evaluacion(evaluacion_id: int, evaluacion: EvaluacionUpdate, db: Session = Depends(get_db)):
-    return crud.update_evaluacion(db, evaluacion_id, evaluacion)
+def actualizar_evaluacion(id_evaluacion: int, evaluacion: EvaluacionUpdate, db: Session = Depends(get_db)):
+    return crud.update_evaluacion(db, id_evaluacion, evaluacion)
 
 
-@app.delete("/evaluaciones/{evaluacion_id}", response_model=EvaluacionResponse)
+@app.delete("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
 
-def eliminar_evaluacion(evaluacion_id: int, db: Session = Depends(get_db)):
-    return crud.delete_evaluacion(db, evaluacion_id)
+def eliminar_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
+    return crud.delete_evaluacion(db, id_evaluacion)
 
 
 # ---------------------- Rutas para comentarios ----------------------#

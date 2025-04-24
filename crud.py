@@ -1,13 +1,13 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from utils import hash_password
+
 
 # --------------------- Usuarios --------------------- #
 
 
 def get_user(db: Session, user_id: int):
 
-    result = db.execute(text("SELECT * FROM LeerUsuario(:uid)"), {"uid": user_id})
+    result = db.execute(text("SELECT * FROM LeerUsuario(:id)"), {"id": user_id})
     return result.fetchone()
 
 
