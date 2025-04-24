@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from database import SessionLocal, engine, Base
+from fastapi.responses import JSONResponse
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 import crud
 
@@ -10,7 +12,6 @@ from schemas import (
     EvaluacionCreate, EvaluacionResponse, EvaluacionUpdate,
     ComentarioCreate, ComentarioResponse, ComentarioUpdate
 )
-from sqlalchemy import create_engine
 
 #Corroboración de la conexion a la base de datos
 try:
@@ -41,7 +42,8 @@ def crear_usuario(user: UserCreate, db: Session = Depends(get_db)):
     if not nuevo:
         raise HTTPException(status_code=400, detail="No se pudo crear el usuario")
 
-    return nuevo
+    #return nuevo
+    return JSONResponse(content={"mensaje": "Usuario creado"}, status_code=201)
 
 @app.get("/usuarios/{id_usuario}", response_model=UserResponse)
 
@@ -73,7 +75,9 @@ def eliminar_usuario(id_usuario: int, db: Session = Depends(get_db)):
     if eliminado is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-    return eliminado
+    #return eliminado
+    return {"mensaje": f"Usuario con id {id} eliminado"}
+
 
 # ---------------------- Rutas para asignaturas ----------------------#
 

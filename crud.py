@@ -11,20 +11,20 @@ def get_user(db: Session, user_id: int):
     return result.fetchone()
 
 
-def create_user(db: Session, user):
+from sqlalchemy import text
 
+def create_user(db: Session, user):
     db.execute(text("""
         CALL CrearUsuario(:nombre, :email, :rol, :contrasena)
     """), {
         "nombre": user.nombre,
         "email": user.email,
         "rol": user.rol,
-        "contrasena": user.password  # Pasamos la contraseña en texto plano (sin hash)
+        "contrasena": user.contrasena
     })
     db.commit()
-    
-    return {"message": "Usuario creado con éxito"}
 
+    return {"message": "Usuario creado con éxito"}
 
 def update_user(db: Session, user_id: int, user_update):
     
@@ -37,15 +37,15 @@ def update_user(db: Session, user_id: int, user_update):
         "rol": user_update.rol,
         "contrasena": user_update.password if user_update.password else None  
     })
+    db.add()
     db.commit()
     return {"message": "Usuario actualizado con éxito"}
 
 
 
-
 def delete_user(db: Session, user_id: int):
 
-    db.execute(text("CALL EliminarUsuario(:id_usuario)"), {"id_usuario": user_id})
+    db.execute(text("CALL EliminarUsuario(:id)"), {"id": user_id})
     db.commit()
     return {"message": "Usuario eliminado con éxito"}
 

@@ -10,13 +10,13 @@ class UserBase(BaseModel):
     rol: str
 
 class UserCreate(UserBase):
-    password: str
+    contrasena: str
 
 class UserUpdate(BaseModel):
     nombre: str | None = None
     email: str | None = None
     rol: str | None = None
-    password: str | None = None
+    contrasena: str | None = None
 
 class UserResponse(UserBase):
     id_usuario: int
