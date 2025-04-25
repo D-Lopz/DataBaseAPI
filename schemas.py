@@ -48,7 +48,7 @@ class AsignaturaResponse(AsignaturaBase):
         from_attributes = True
 
 
-# CRUD para comentarios
+# CRUD para evaluaciones
 
 class EvaluacionBase(BaseModel):
 

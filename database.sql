@@ -240,15 +240,31 @@ END;
 $$;
 
 CREATE OR REPLACE FUNCTION LeerComentario(id INT)
-RETURNS TABLE(id_comentario INT, id_estudiante INT, id_docente INT, id_asignatura INT, id_evaluacion INT, comentario TEXT, fecha_creacion TIMESTAMP)
+RETURNS TABLE(
+    id_comentario INT,
+    id_estudiante INT,
+    id_docente INT,
+    id_asignatura INT,
+    id_evaluacion INT,
+    contenido TEXT, -- <- CAMBIADO AQUI
+    fecha_creacion TIMESTAMP
+)
 AS $$
 BEGIN
     RETURN QUERY
-    SELECT c.id_comentario, c.id_estudiante, c.id_docente, c.id_asignatura, c.id_evaluacion, c.comentario, c.fecha_creacion
+    SELECT 
+        c.id_comentario,
+        c.id_estudiante,
+        c.id_docente,
+        c.id_asignatura,
+        c.id_evaluacion,
+        c.comentario AS contenido, -- <- CAMBIADO AQUI
+        c.fecha_creacion
     FROM Comentarios c
     WHERE c.id_comentario = id;
 END;
 $$ LANGUAGE plpgsql;
+
 
 
 -- CREATE OR REPLACE FUNCTION ActualizarComentario(id INT, id_est INT, id_doc INT, id_asig INT, id_eval INT, comentario_in TEXT)
