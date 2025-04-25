@@ -1,86 +1,87 @@
-# 🎯 API de Gestión de Usuarios y Comentarios – FastAPI + PostgreSQL
+🎓 API REST de Análisis de Comentarios Docentes — FastAPI + PostgreSQL
+Bienvenido a la API de análisis de comentarios de evaluación docente, creada con el poder de FastAPI, la firmeza de PostgreSQL, y el ritmo fluido de un backend moderno. Esta API está diseñada para manejar usuarios, asignaturas, comentarios, análisis de sentimientos y reportes de manera eficiente, clara y segura.
 
-¡Bienvenido! Esta API está diseñada para gestionar usuarios, evaluaciones y análisis de comentarios con técnicas de NLP, todo servido con FastAPI y respaldado por una base de datos PostgreSQL.
+📚 Características principales
+🔐 Gestión de usuarios: CRUD completo de usuarios.
 
----
+🏫 Gestión académica: manejo de asignaturas y evaluaciones.
 
-## 🚀 Tecnologías
+💬 Comentarios y NLP: análisis automático de sentimientos.
 
-- **FastAPI** – Backend rápido y moderno.
-- **PostgreSQL** – Base de datos poderosa y robusta.
-- **SQLAlchemy** – ORM para manejar las queries con elegancia.
-- **psycopg2** – Conector PostgreSQL para Python.
-- **Docker + Podman** – Contenerización y despliegue seguro.
+📊 Reportes: generación de reportes por usuario, materia o periodo.
 
----
+🔁 Procedimientos almacenados: lógica encapsulada en PostgreSQL para mayor eficiencia.
 
-## 📦 Estructura del proyecto
+🐳 Contenerización: integración con Podman (Docker compatible) para despliegue ágil.
 
-```bash
-API2/
-├── main.py                # Archivo principal de FastAPI
-├── crud.py                # Funciones CRUD y lógica de DB
-├── models/                # Modelos de datos SQLAlchemy
-├── database.py            # Conexión y configuración DB
-├── requirements.txt       # Dependencias del proyecto
-└── README.md              # Este archivo hermoso que estás leyendo
-🔧 Configuración rápida
+🚀 Tecnologías usadas
+
+Tecnología	Descripción
+FastAPI	Framework principal de la API
+PostgreSQL	Motor de base de datos
+SQLAlchemy	ORM para manejo de datos
+psycopg2	Conector PostgreSQL para Python
+Uvicorn	Servidor ASGI rápido
+Podman	Contenedores para desarrollo
+🛠️ Estructura del proyecto
+bash
+Copy
+Edit
+📁 API/
+├── 📄 main.py              # Punto de entrada de la API
+├── 📄 crud.py              # Lógica de base de datos y llamadas a procedimientos
+├── 📄 models.py            # Esquemas de datos con Pydantic
+├── 📄 database.py          # Conexión a PostgreSQL
+├── 📄 schemas.sql          # Estructura de la base de datos
+├── 📄 procedures.sql       # Procedimientos almacenados
+├── 📁 tests/               # Pruebas automatizadas
+└── 📄 README.md            # Este archivo
+🔄 Endpoints principales
+
+Método	Endpoint	Descripción
+GET	/usuarios/	Listar todos los usuarios
+POST	/usuarios/	Crear un nuevo usuario
+PUT	/usuarios/{id}	Actualizar datos de un usuario
+DELETE	/usuarios/{id}	Eliminar un usuario
+GET	/comentarios/	Obtener comentarios
+POST	/analizar/	Analizar comentario con NLP
+GET	/reportes/	Ver reportes de evaluación
+🧪 Cómo correr la API
 Clona el repositorio:
 
 bash
 Copy
 Edit
-git clone https://github.com/tu_usuario/api-gestion.git
-cd api-gestion
-Crea un entorno virtual y activa:
+git clone https://github.com/tuusuario/tu-repo-api.git
+cd tu-repo-api
+Crea tu entorno virtual e instala dependencias:
 
 bash
 Copy
 Edit
 python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
-Instala las dependencias:
-
-bash
-Copy
-Edit
+source venv/bin/activate  # o venv\Scripts\activate en Windows
 pip install -r requirements.txt
+Configura tu base de datos PostgreSQL y carga los archivos .sql.
+
 Ejecuta la API:
 
 bash
 Copy
 Edit
 uvicorn main:app --reload
-Visita la docs:
-
-arduino
-Copy
-Edit
-http://127.0.0.1:8000/docs
-🛠 Funcionalidades
-Usuarios
-
-Crear, consultar, actualizar, eliminar
-
-Evaluaciones
-
-Relación con usuarios
-
-Comentarios
-
-Registro y análisis de sentimientos
-
-❌ Manejo de errores
-Esta API detecta y retorna errores personalizados. Ejemplo: si intentas borrar un usuario con comentarios relacionados, se recibe un mensaje claro y entendible.
-
-🐳 Docker
-¿Quieres correrlo en un contenedor? Usa:
+🐳 Usando Podman (opcional)
+Puedes contenerizar la API para desarrollo o producción:
 
 bash
 Copy
 Edit
-docker build -t api-users .
-docker run -p 8000:8000 api-users
-❤️ Autor
-Creado con pasión por David
-Inspirado por ritmos latinos y líneas de código 🕺💻
+podman build -t api-docentes .
+podman run -d -p 8000:8000 api-docentes
+⚠️ Consideraciones
+La eliminación de usuarios está restringida si tienen comentarios asociados (por integridad referencial).
+
+Todos los análisis de sentimientos deben pasarse por la función analizar/ antes de guardarse.
+
+✨ Créditos
+Creado por David López
