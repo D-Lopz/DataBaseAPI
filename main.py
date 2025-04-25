@@ -34,7 +34,7 @@ def get_db():
 
 # ---------------------- Rutas para usuarios ----------------------#
 
-@app.post("/usuarios/", response_model=UserResponse)
+@app.post("/usuarios/", response_model=UserResponse)#✅
 
 def crear_usuario(user: UserCreate, db: Session = Depends(get_db)):
     nuevo = crud.create_user(db, user)
@@ -43,9 +43,10 @@ def crear_usuario(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="No se pudo crear el usuario")
 
     #return nuevo
-    return JSONResponse(content={"mensaje": "Usuario creado"}, status_code=201)
+    return JSONResponse(content={"mensaje": "Usuario creado"}, status_code=201) 
 
-@app.get("/usuarios/{id_usuario}", response_model=UserResponse)
+
+@app.get("/usuarios/{id_usuario}", response_model=UserResponse)#✅
 
 def obtener_usuario(id_usuario: int, db: Session = Depends(get_db)):
     user = crud.get_user(db, id_usuario)
@@ -56,10 +57,10 @@ def obtener_usuario(id_usuario: int, db: Session = Depends(get_db)):
     return user
 
 
-@app.put("/usuarios/{id_usuario}", response_model=UserResponse)
+@app.put("/usuarios/{user_id}", response_model=UserResponse)
 
-def actualizar_usuario(id_usuario: int, user: UserUpdate, db: Session = Depends(get_db)):
-    actualizado = crud.update_user(db, id_usuario, user)
+def actualizar_usuario(user_id: int, user: UserUpdate, db: Session = Depends(get_db)):
+    actualizado = crud.update_user(db, user_id, user)
 
     if actualizado is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")

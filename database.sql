@@ -125,14 +125,25 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE PROCEDURE ActualizarUsuario(id INT, nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena VARCHAR)
+CREATE OR REPLACE PROCEDURE ActualizarUsuario(
+    IN p_id_usuario INT,
+    IN p_nombre VARCHAR,
+    IN p_email VARCHAR,
+    IN p_rol rol_usuario,
+    IN p_contrasena VARCHAR
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE Usuarios SET nombre = nombre, email = email, rol = rol, contrasena = contrasena
-    WHERE id_usuario = id;
+    UPDATE Usuarios
+    SET nombre = p_nombre,
+        email = p_email,
+        rol = p_rol,
+        contrasena = p_contrasena
+    WHERE id_usuario = p_id_usuario;
 END;
 $$;
+
 
 CREATE OR REPLACE PROCEDURE EliminarUsuario(id INT)
 LANGUAGE plpgsql

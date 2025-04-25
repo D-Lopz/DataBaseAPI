@@ -1,6 +1,8 @@
+from models import User, Asignatura, Comentario, Reporte
 from sqlalchemy.orm import Session
+from schemas import UserUpdate
 from sqlalchemy import text
-
+import schemas
 
 # --------------------- Usuarios --------------------- #
 
@@ -10,8 +12,6 @@ def get_user(db: Session, user_id: int):
     result = db.execute(text("SELECT * FROM LeerUsuario(:id)"), {"id": user_id})
     return result.fetchone()
 
-
-from sqlalchemy import text
 
 def create_user(db: Session, user):
     db.execute(text("""
@@ -26,20 +26,40 @@ def create_user(db: Session, user):
 
     return {"message": "Usuario creado con éxito"}
 
-def update_user(db: Session, user_id: int, user_update):
-    
-    db.execute(text("""
-        CALL ActualizarUsuario(:id_usuario, :nombre, :email, :rol, :contrasena)
-    """), {
-        "id_usuario": user_id,
-        "nombre": user_update.nombre,
-        "email": user_update.email,
-        "rol": user_update.rol,
-        "contrasena": user_update.password if user_update.password else None  
-    })
-    db.add()
-    db.commit()
-    return {"message": "Usuario actualizado con éxito"}
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+def update_user(db: Session, user_id: int, user_update: UserUpdate):
+    try:
+        # Ejecutar el procedimiento almacenado
+        db.execute(text("""
+            CALL ActualizarUsuario(:id_usuario, :nombre, :email, :rol, :contrasena)
+        """), {
+            "id_usuario": user_id,
+            "nombre": user_update.nombre,
+            "email": user_update.email,
+            "rol": user_update.rol,
+            "contrasena": user_update.contrasena
+        })
+        
+        # Realizar commit para guardar los cambios en la base de datos
+        db.commit()
+
+        # Consultar el usuario actualizado para devolverlo
+        usuario_actualizado = db.query(models.User).filter(models.User.id_usuario == user_id).first()
+
+        # Verificar si el usuario existe
+        if usuario_actualizado:
+            return usuario_actualizado
+        else:
+            return {"error": "Usuario no encontrado"}
+
+    except Exception as e:
+        # Si ocurre un error, realizar rollback de la transacción
+        db.rollback()
+        # Log del error
+        print(f"Error al actualizar usuario: {e}")
+        return {"error": str(e)}
 
 
 
@@ -138,8 +158,8 @@ def delete_evaluacion(db: Session, evaluacion_id: int):
 # --------------------- Comentarios --------------------- #
 
 # Obtener todos los comentarios de una evaluación
-def get_comentario(db: Session, evaluacion_id: int):
-    result = db.execute(text("SELECT * FROM LeerComentario(:id_evaluacion)"), {"id_evaluacion": evaluacion_id})
+def get_comentario(db: Session, comentario_id: int):
+    result = db.execute(text("SELECT * FROM LeerComentario(:id_comentario)"), {"id_comentario": comentario_id})
     return result.fetchone()
 
 # Crear un comentario

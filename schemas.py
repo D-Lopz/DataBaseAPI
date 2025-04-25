@@ -1,5 +1,7 @@
 from pydantic import BaseModel
+from typing import Optional
 from datetime import date
+
 
 
 # CRUD para usuarios
@@ -22,7 +24,7 @@ class UserResponse(UserBase):
     id_usuario: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 # CRUD para asignaturas
 
@@ -43,7 +45,7 @@ class AsignaturaResponse(AsignaturaBase):
     id_asignatura: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # CRUD para comentarios
@@ -70,7 +72,7 @@ class EvaluacionResponse(EvaluacionBase):
     id_evaluacion: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 # CRUD para comentarios
@@ -92,5 +94,5 @@ class ComentarioResponse(ComentarioBase):
     id_comentario: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
