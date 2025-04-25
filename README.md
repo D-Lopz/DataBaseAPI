@@ -1,87 +1,99 @@
-🎓 API REST de Análisis de Comentarios Docentes — FastAPI + PostgreSQL
-Bienvenido a la API de análisis de comentarios de evaluación docente, creada con el poder de FastAPI, la firmeza de PostgreSQL, y el ritmo fluido de un backend moderno. Esta API está diseñada para manejar usuarios, asignaturas, comentarios, análisis de sentimientos y reportes de manera eficiente, clara y segura.
+# 📘 API de Análisis de Comentarios Docentes
 
-📚 Características principales
-🔐 Gestión de usuarios: CRUD completo de usuarios.
+¡Bienvenido a la API de Análisis de Comentarios Docentes! Esta API está construida con ❤️ usando **FastAPI** y **PostgreSQL**, con magia NLP incluida 🧠✨. Aquí podrás gestionar usuarios, evaluaciones, comentarios y mucho más.
 
-🏫 Gestión académica: manejo de asignaturas y evaluaciones.
+---
 
-💬 Comentarios y NLP: análisis automático de sentimientos.
+## 🚀 Características principales
 
-📊 Reportes: generación de reportes por usuario, materia o periodo.
+- CRUD completo para usuarios, asignaturas, evaluaciones, comentarios, análisis de sentimientos y reportes.
+- Procedimientos almacenados en PostgreSQL para lógica de negocio robusta.
+- Separación de responsabilidades (controladores, modelos, etc.).
+- Contenerizada con **Podman** para despliegue fácil.
+- Análisis de sentimientos automático con técnicas NLP.
 
-🔁 Procedimientos almacenados: lógica encapsulada en PostgreSQL para mayor eficiencia.
+---
 
-🐳 Contenerización: integración con Podman (Docker compatible) para despliegue ágil.
+## 📦 Instalación
 
-🚀 Tecnologías usadas
+1. Clona el repositorio:
+```bash
+git clone https://github.com/tu_usuario/nombre_del_repo.git
+cd nombre_del_repo
+```
 
-Tecnología	Descripción
-FastAPI	Framework principal de la API
-PostgreSQL	Motor de base de datos
-SQLAlchemy	ORM para manejo de datos
-psycopg2	Conector PostgreSQL para Python
-Uvicorn	Servidor ASGI rápido
-Podman	Contenedores para desarrollo
-🛠️ Estructura del proyecto
-bash
-Copy
-Edit
-📁 API/
-├── 📄 main.py              # Punto de entrada de la API
-├── 📄 crud.py              # Lógica de base de datos y llamadas a procedimientos
-├── 📄 models.py            # Esquemas de datos con Pydantic
-├── 📄 database.py          # Conexión a PostgreSQL
-├── 📄 schemas.sql          # Estructura de la base de datos
-├── 📄 procedures.sql       # Procedimientos almacenados
-├── 📁 tests/               # Pruebas automatizadas
-└── 📄 README.md            # Este archivo
-🔄 Endpoints principales
-
-Método	Endpoint	Descripción
-GET	/usuarios/	Listar todos los usuarios
-POST	/usuarios/	Crear un nuevo usuario
-PUT	/usuarios/{id}	Actualizar datos de un usuario
-DELETE	/usuarios/{id}	Eliminar un usuario
-GET	/comentarios/	Obtener comentarios
-POST	/analizar/	Analizar comentario con NLP
-GET	/reportes/	Ver reportes de evaluación
-🧪 Cómo correr la API
-Clona el repositorio:
-
-bash
-Copy
-Edit
-git clone https://github.com/tuusuario/tu-repo-api.git
-cd tu-repo-api
-Crea tu entorno virtual e instala dependencias:
-
-bash
-Copy
-Edit
-python -m venv venv
-source venv/bin/activate  # o venv\Scripts\activate en Windows
+2. Instala dependencias:
+```bash
 pip install -r requirements.txt
-Configura tu base de datos PostgreSQL y carga los archivos .sql.
+```
 
-Ejecuta la API:
+3. Configura tu base de datos PostgreSQL en `.env` o `config.py`.
 
-bash
-Copy
-Edit
+4. Ejecuta el servidor:
+```bash
 uvicorn main:app --reload
-🐳 Usando Podman (opcional)
-Puedes contenerizar la API para desarrollo o producción:
+```
 
-bash
-Copy
-Edit
+---
+
+## 🛠️ Estructura del Proyecto
+
+```
+📁 api-docentes
+├── main.py             # Punto de entrada de la API
+├── crud.py             # Lógica de base de datos / procedimientos
+├── models.py           # Definiciones Pydantic
+├── controllers/        # Separación de lógica
+├── database/           # Conexión a PostgreSQL
+├── nlp/                # Análisis de sentimientos y más
+└── README.md           # Este archivo épico
+```
+
+---
+
+## 📚 Endpoints
+
+| Método | Ruta              | Descripción                      |
+|--------|-------------------|----------------------------------|
+| GET    | /usuarios/        | Lista todos los usuarios         |
+| POST   | /usuarios/        | Crea un nuevo usuario            |
+| DELETE | /usuarios/{id}    | Elimina un usuario               |
+| GET    | /comentarios/     | Lista comentarios registrados    |
+| POST   | /comentarios/     | Añade un comentario              |
+| ...    | ...               | Y muchos más...                  |
+
+Documentación interactiva en: `http://localhost:8000/docs`
+
+---
+
+## 🧪 Pruebas
+
+Puedes usar herramientas como **Postman** o **cURL**, pero la magia real vive en:
+```
+http://localhost:8000/docs
+```
+
+---
+
+## 🐳 Docker / Podman (opcional)
+
+```bash
 podman build -t api-docentes .
-podman run -d -p 8000:8000 api-docentes
-⚠️ Consideraciones
-La eliminación de usuarios está restringida si tienen comentarios asociados (por integridad referencial).
+podman run -p 8000:8000 api-docentes
+```
 
-Todos los análisis de sentimientos deben pasarse por la función analizar/ antes de guardarse.
+---
 
-✨ Créditos
-Creado por David López
+## 🤝 Contribuciones
+
+¡Toda ayuda es bienvenida! Abre un issue, manda un pull request, o simplemente comparte esta API con tus compas 💬💻.
+
+---
+
+## 📜 Licencia
+
+MIT. Usa, modifica y vuela libre 🕊️.
+
+---
+
+Hecho con cariño por [David López] 💡
