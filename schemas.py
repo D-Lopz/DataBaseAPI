@@ -38,8 +38,8 @@ class AsignaturaCreate(AsignaturaBase):
 
 class AsignaturaUpdate(BaseModel):
 
-    nombre: str | None = None
-    id_docente: int | None = None
+    nombre_asignatura: str | None = None
+    docente_id: int | None = None
 
 class AsignaturaResponse(AsignaturaBase):
     id_asignatura: int
@@ -63,10 +63,10 @@ class EvaluacionCreate(EvaluacionBase):
 
 class EvaluacionUpdate(BaseModel):
 
-    fecha_inicio: date | None = None
-    fecha_fin: date | None = None
-    estado: str | None = None
-    descripcion: str | None = None
+    fech_inicio: date | None = None
+    fech_fin: date | None = None
+    estado_e: str | None = None
+    descripcion_e: str | None = None
 
 class EvaluacionResponse(EvaluacionBase):
     id_evaluacion: int

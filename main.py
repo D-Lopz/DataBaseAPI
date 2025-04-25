@@ -94,7 +94,7 @@ def crear_asignatura(asignatura: AsignaturaCreate, db: Session = Depends(get_db)
     if not nueva:
         raise HTTPException(status_code=400, detail="No se pudo crear la asignatura")
 
-    return nueva
+    return JSONResponse(content=nueva, status_code=201)
 
 
 @app.get("/asignaturas/{id_asignatura}", response_model=AsignaturaResponse)
@@ -113,7 +113,7 @@ def actualizar_asignatura(id_asignatura: int, asignatura: AsignaturaUpdate, db: 
 
     if actualizada is None:
         raise HTTPException(status_code=404, detail="Asignatura no encontrada")
-    return actualizada
+    return JSONResponse(content=actualizada, status_code=201)
 
 
 @app.delete("/asignaturas/{id_asignatura}")
@@ -123,14 +123,19 @@ def eliminar_asignatura(id_asignatura: int, db: Session = Depends(get_db)):
 
     if eliminada is None:
         raise HTTPException(status_code=404, detail="Asignatura no encontrada")
-    return eliminada
+    return JSONResponse(content=eliminada, status_code=201)
 
 # ---------------------- Rutas para evaluaciones ----------------------#
 
 @app.post("/evaluaciones/", response_model=EvaluacionResponse)
 
 def crear_evaluacion(evaluacion: EvaluacionCreate, db: Session = Depends(get_db)):
-    return crud.create_evaluacion(db, evaluacion)
+    creada = crud.create_evaluacion(db, evaluacion)
+
+    if creada is None:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+
+    return JSONResponse(content=creada, status_code=201)
 
 
 @app.get("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
@@ -145,13 +150,20 @@ def obtener_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
 @app.put("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
 
 def actualizar_evaluacion(id_evaluacion: int, evaluacion: EvaluacionUpdate, db: Session = Depends(get_db)):
-    return crud.update_evaluacion(db, id_evaluacion, evaluacion)
-
+    actualizada = crud.update_evaluacion(db, id_evaluacion, evaluacion)
+    
+    if actualizada is None:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+    return JSONResponse(content=actualizada, status_code=201)
 
 @app.delete("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
 
 def eliminar_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
-    return crud.delete_evaluacion(db, id_evaluacion)
+    eliminada = crud.delete_evaluacion(db, id_evaluacion)
+
+    if eliminada is None:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+    return JSONResponse(content=eliminada, status_code=201)
 
 
 # ---------------------- Rutas para comentarios ----------------------#
@@ -159,7 +171,11 @@ def eliminar_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
 @app.post("/comentarios/", response_model=ComentarioResponse)
 
 def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)):
-    return crud.create_comentario(db, comentario)
+    creada = crud.create_comentario(db, comentario)
+
+    if creada is None:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+    return JSONResponse(content=creada, status_code=201)
 
 
 @app.get("/comentarios/{id_comentario}", response_model=ComentarioResponse)
@@ -175,10 +191,18 @@ def obtener_comentario(id_comentario: int, db: Session = Depends(get_db)):
 @app.put("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 
 def actualizar_comentario(id_comentario: int, comentario: ComentarioUpdate, db: Session = Depends(get_db)):
-    return crud.update_comentario(db, id_comentario, comentario)
+    actualizada = crud.update_comentario(db, id_comentario, comentario)
+
+    if actualizada is None:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+    return JSONResponse(content=actualizada, status_code=201)
 
 
 @app.delete("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 
 def eliminar_comentario(id_comentario: int, db: Session = Depends(get_db)):
-    return crud.delete_comentario(db, id_comentario)
+    eliminada = crud.delete_comentario(db, id_comentario)
+
+    if eliminada is None:
+        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+    return JSONResponse(content=eliminada, status_code=201)

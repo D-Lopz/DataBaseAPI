@@ -28,8 +28,6 @@ def create_user(db: Session, user):
 
     return {"message": "Usuario creado con éxito"}
 
-from sqlalchemy import text
-from sqlalchemy.orm import Session
 
 def update_user(db: Session, user_id: int, user_update: UserUpdate):
     try:
@@ -46,15 +44,15 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate):
         
         # Realizar commit para guardar los cambios en la base de datos
         db.commit()
-
-        # Consultar el usuario actualizado para devolverlo
-        usuario_actualizado = db.query(models.User).filter(models.User.id_usuario == user_id).first()
-
+        #Consultar el usuario actualizado para devolverlo
+        # usuario_actualizado = db.query(models.User).filter(models.User.id_usuario == user_id).first()
         # Verificar si el usuario existe
-        if usuario_actualizado:
-            return usuario_actualizado
-        else:
-            return {"error": "Usuario no encontrado"}
+        # if usuario_actualizado:
+        #     return usuario_actualizado
+        # else:
+        #     return {"error": "Usuario no encontrado"}
+        result = db.execute(text("SELECT * FROM LeerUsuario(:id)"), {"id": user_id})
+        return result.fetchone()
 
     except Exception as e:
         # Si ocurre un error, realizar rollback de la transacción
@@ -108,7 +106,7 @@ def update_asignatura(db: Session, asignatura_id: int, asignatura_update):
     """), {
         "id_asignatura": asignatura_id,
         "nombre_asignatura": asignatura_update.nombre_asignatura,
-        "id_docente": asignatura_update.id_docente
+        "id_docente": asignatura_update.docente_id
     })
     db.commit()
     return {"message": "Asignatura actualizada con éxito"}
@@ -148,10 +146,10 @@ def update_evaluacion(db: Session, evaluacion_id: int, evaluacion_update):
         CALL ActualizarEvaluacion(:id_evaluacion, :fecha_inicio, :fecha_fin, :estado, :descripcion)
     """), {
         "id_evaluacion": evaluacion_id,
-        "fecha_inicio": evaluacion_update.fecha_inicio,
-        "fecha_fin": evaluacion_update.fecha_fin,
-        "estado": evaluacion_update.estado,
-        "descripcion": evaluacion_update.descripcion
+        "fecha_inicio": evaluacion_update.fech_inicio,
+        "fecha_fin": evaluacion_update.fech_fin,
+        "estado": evaluacion_update.estado_e,
+        "descripcion": evaluacion_update.descripcion_e
     })
     db.commit()
     return {"message": "Evaluación actualizada con éxito"}

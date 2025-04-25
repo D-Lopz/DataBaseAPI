@@ -183,11 +183,11 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE PROCEDURE ActualizarAsignatura(id INT, nombre VARCHAR, id_docente INT)
+CREATE OR REPLACE PROCEDURE ActualizarAsignatura(id INT, nombre VARCHAR, docente_id INT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE Asignaturas SET nombre_asignatura = nombre, id_docente = id_docente WHERE id_asignatura = id;
+    UPDATE Asignaturas SET nombre_asignatura = nombre, id_docente = docente_id WHERE id_asignatura = id;
 END;
 $$;
 
@@ -221,12 +221,12 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE PROCEDURE ActualizarEvaluacion(id INT, fecha_inicio DATE, fecha_fin DATE, estado estado_evaluacion, descripcion TEXT)
+CREATE OR REPLACE PROCEDURE ActualizarEvaluacion(id INT, fech_inicio DATE, fech_fin DATE, estado_e estado_evaluacion, descripcion_e TEXT)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    UPDATE Evaluaciones SET fecha_inicio = fecha_inicio, fecha_fin = fecha_fin,
-    estado = estado, descripcion = descripcion WHERE id_evaluacion = id;
+    UPDATE Evaluaciones SET fecha_inicio = fech_inicio, fecha_fin = fech_fin,
+    estado = estado_e, descripcion = descripcion_e WHERE id_evaluacion = id;
 END;
 $$;
 
