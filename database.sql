@@ -145,13 +145,22 @@ END;
 $$;
 
 
-CREATE OR REPLACE PROCEDURE EliminarUsuario(id INT)
+CREATE OR REPLACE PROCEDURE eliminarusuario(id INTEGER)
 LANGUAGE plpgsql
 AS $$
 BEGIN
-    DELETE FROM Usuarios WHERE id_usuario = id;
+    -- Verificar si hay comentarios relacionados
+    IF EXISTS (
+        SELECT 1 FROM comentarios WHERE id_estudiante = id
+    ) THEN
+        RAISE EXCEPTION 'No se puede eliminar el usuario con ID % porque tiene comentarios relacionados.', id;
+    END IF;
+
+    -- Si no hay comentarios, borrar el usuario
+    DELETE FROM usuarios WHERE id_usuario = id;
 END;
 $$;
+
 
 -- Asignaturas
 CREATE OR REPLACE PROCEDURE CrearAsignatura(nombre VARCHAR, id_docente INT)

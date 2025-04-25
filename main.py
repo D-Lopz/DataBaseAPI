@@ -1,3 +1,4 @@
+from sqlalchemy.exc import DBAPIError, IntegrityError
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from database import SessionLocal, engine, Base
@@ -5,6 +6,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 import crud
+import re
 
 from schemas import (
     UserCreate, UserResponse, UserUpdate,
@@ -68,17 +70,19 @@ def actualizar_usuario(user_id: int, user: UserUpdate, db: Session = Depends(get
     return actualizado
 
 
-@app.delete("/usuarios/{id_usuario}", response_model=UserResponse)
 
+@app.delete("/usuarios/{id_usuario}", response_model=dict)
 def eliminar_usuario(id_usuario: int, db: Session = Depends(get_db)):
-    eliminado = crud.delete_user(db, id_usuario)
-
-    if eliminado is None:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-    #return eliminado
-    return {"mensaje": f"Usuario con id {id} eliminado"}
-
+    try:
+        eliminado = crud.delete_user(db, id_usuario)
+        if eliminado is None:
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        return {"mensaje": f"Usuario con id {id_usuario} eliminado"}
+    
+    except DBAPIError as e:
+        # Extraer el mensaje de error desde Postgres (RAISE)
+        detalle = str(e.__cause__)
+        raise HTTPException(status_code=400, detail=f"No se puede eliminar el usuario: {detalle}")
 
 # ---------------------- Rutas para asignaturas ----------------------#
 

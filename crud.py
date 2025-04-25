@@ -1,8 +1,10 @@
 from models import User, Asignatura, Comentario, Reporte
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from schemas import UserUpdate
 from sqlalchemy import text
 import schemas
+import re
 
 # --------------------- Usuarios --------------------- #
 
@@ -62,13 +64,19 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate):
         return {"error": str(e)}
 
 
-
-def delete_user(db: Session, user_id: int):
-
-    db.execute(text("CALL EliminarUsuario(:id)"), {"id": user_id})
-    db.commit()
-    return {"message": "Usuario eliminado con éxito"}
-
+def delete_user(db, user_id: int):
+    try:
+        # Llamar al procedimiento almacenado
+        db.execute(text("CALL EliminarUsuario(:id)"), {"id": user_id})
+        db.commit()
+        return {"message": f"Usuario con ID {user_id} eliminado correctamente."}
+    
+    except Exception as e:
+        error_message = str(e)
+        # Buscar mensaje entre 'RaiseException:' y 'CONTEXT:' (o fin de línea)
+        match = re.search(r'RaiseException:\s*(.*?)\s*CONTEXT:', error_message, re.DOTALL)
+        user_friendly_message = match.group(1).strip() if match else "No se puede eliminar el usuario porque tiene comentarios relacionados."
+        raise HTTPException(status_code=400, detail=f"ERROR:  {user_friendly_message}")
 
 # --------------------- Asignaturas --------------------- #
 
