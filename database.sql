@@ -276,13 +276,27 @@ $$ LANGUAGE plpgsql;
 
 
 
--- CREATE OR REPLACE FUNCTION ActualizarComentario(id INT, id_est INT, id_doc INT, id_asig INT, id_eval INT, comentario_in TEXT)
--- RETURNS VOID AS $$
--- BEGIN
---     UPDATE Comentarios SET id_estudiante = id_est, id_docente = id_doc, id_asignatura = id_asig,
---     id_evaluacion = id_eval, comentario = comentario_in WHERE id_comentario = id;
--- END;
--- $$ LANGUAGE plpgsql;
+CREATE OR REPLACE PROCEDURE ActualizarComentario(
+    IN id INT,
+    IN id_est INT,
+    IN id_doc INT,
+    IN id_asig INT,
+    IN id_eval INT,
+    IN comentario_in TEXT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    UPDATE Comentarios
+    SET 
+        id_estudiante = id_est,
+        id_docente = id_doc,
+        id_asignatura = id_asig,
+        id_evaluacion = id_eval,
+        comentario = comentario_in
+    WHERE id_comentario = id;
+END;
+$$;
 
 CREATE OR REPLACE PROCEDURE EliminarComentario(id INT)
 LANGUAGE plpgsql

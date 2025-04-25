@@ -1,7 +1,7 @@
 from models import User, Asignatura, Comentario, Reporte
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from schemas import UserUpdate
+from schemas import UserUpdate, ComentarioUpdate
 from sqlalchemy import text
 import schemas
 import re
@@ -184,6 +184,22 @@ def create_comentario(db: Session, comentario):
     })
     db.commit()
     return {"message": "Comentario creado con éxito"}
+
+
+def update_comentario(db: Session, comentario_id: int, comentario_update: ComentarioUpdate):
+    db.execute(text("""
+        CALL ActualizarComentario(:id, :id_est, :id_doc, :id_asig, :id_eval, :comentario)
+    """), {
+        "id": comentario_id,
+        "id_est": comentario_update.id_estudiante,
+        "id_doc": comentario_update.id_docente,
+        "id_asig": comentario_update.id_asignatura,
+        "id_eval": comentario_update.id_evaluacion,
+        "comentario": comentario_update.contenido
+    })
+    db.commit()
+    return {"message": "Comentario actualizado con éxito"}
+
 
 # Eliminar un comentario
 def delete_comentario(db: Session, comentario_id: int):

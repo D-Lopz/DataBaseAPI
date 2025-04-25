@@ -88,7 +88,11 @@ class ComentarioCreate(ComentarioBase):
     pass
 
 class ComentarioUpdate(BaseModel):
-    contenido: str | None = None  
+    id_estudiante: int
+    id_docente: int     
+    id_asignatura: int    
+    id_evaluacion: int   
+    contenido: str 
 
 class ComentarioResponse(ComentarioBase):
     id_comentario: int
