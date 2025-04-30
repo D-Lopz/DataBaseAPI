@@ -143,7 +143,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE OR REPLACE PROCEDURE eliminarusuario(id INTEGER)
 LANGUAGE plpgsql
 AS $$
@@ -330,6 +329,7 @@ EXECUTE FUNCTION validar_email_unico();
 
 
 -- Trigger para no permitir borrar usuarios admin
+
 CREATE OR REPLACE FUNCTION proteger_admin()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -346,20 +346,60 @@ FOR EACH ROW
 EXECUTE FUNCTION proteger_admin();
 
 
+-- Trigger para evitar campos nulos al ingresar y actualizar el usuario
+
+CREATE OR REPLACE FUNCTION validar_campos_usuario()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.nombre IS NULL OR TRIM(NEW.nombre) = '' THEN
+        RAISE EXCEPTION 'Error: El nombre no puede estar vacío.';
+    END IF;
+
+    IF NEW.email IS NULL OR TRIM(NEW.email) = '' THEN
+        RAISE EXCEPTION 'Error: El email no puede estar vacío.';
+    END IF;
+
+    IF NEW.rol IS NULL OR TRIM(NEW.rol::TEXT) = '' THEN
+        RAISE EXCEPTION 'Error: El rol no puede estar vacío.';
+    END IF;
+
+    IF NEW.contrasena IS NULL OR TRIM(NEW.contrasena) = '' THEN
+        RAISE EXCEPTION 'Error: La contraseña no puede estar vacía.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_validar_usuario_insert
+BEFORE INSERT ON Usuarios
+FOR EACH ROW
+EXECUTE FUNCTION validar_campos_usuario();
+
+CREATE TRIGGER trigger_validar_usuario_update
+BEFORE UPDATE ON Usuarios
+FOR EACH ROW
+EXECUTE FUNCTION validar_campos_usuario();
+
+
 -- Trigger de creación de evaluación
 
 CREATE OR REPLACE FUNCTION validar_evaluacion_descripcion()
 RETURNS trigger AS $$
 BEGIN
-    IF NEW.descripcion = OLD.descripcion THEN
-        RAISE EXCEPTION 'La evaluación ya se encuentra en la base de datos.';
+    IF EXISTS (
+        SELECT 1 FROM Evaluaciones
+        WHERE LOWER(descripcion) = LOWER(NEW.descripcion)
+          AND (TG_OP = 'INSERT' OR id_evaluacion != NEW.id_evaluacion)
+    ) THEN
+        RAISE EXCEPTION 'Ya existe una evaluación con la descripción: %', NEW.descripcion;
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER validar_evaluacion
-BEFORE UPDATE ON Evaluaciones
+CREATE TRIGGER validar_evaluacion_insert
+BEFORE INSERT ON Evaluaciones
 FOR EACH ROW
 EXECUTE FUNCTION validar_evaluacion_descripcion();
 
@@ -369,14 +409,19 @@ EXECUTE FUNCTION validar_evaluacion_descripcion();
 CREATE OR REPLACE FUNCTION validar_comentario_asignatura_evaluacion()
 RETURNS trigger AS $$
 BEGIN
-    IF NEW.id_asignatura = OLD.id_asignatura AND NEW.id_evaluacion = OLD.id_evaluacion THEN
-        RAISE EXCEPTION 'La evaluación de la asignatura en cuestión ya se ha introducido.';
+    IF EXISTS (
+        SELECT 1 FROM Comentarios
+        WHERE id_asignatura = NEW.id_asignatura
+          AND id_evaluacion = NEW.id_evaluacion
+          AND id_estudiante = NEW.id_estudiante
+    ) THEN
+        RAISE EXCEPTION 'Ya existe un comentario de este estudiante para esta asignatura y evaluación.';
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER validar_comentario
-BEFORE UPDATE ON Comentarios
+BEFORE INSERT ON Comentarios
 FOR EACH ROW
 EXECUTE FUNCTION validar_comentario_asignatura_evaluacion();
