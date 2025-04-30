@@ -1,6 +1,5 @@
 from passlib.context import CryptContext
 
-# Si en el futuro decides usar contraseñas seguras con hashing, puedes habilitar estas funciones:
 # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # def verify_password(plain_password, hashed_password):

@@ -112,7 +112,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE OR REPLACE FUNCTION LeerUsuario(id INT)
 RETURNS TABLE(id_usuario INT, nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena VARCHAR, fecha_creacion TIMESTAMP)
 AS $$
@@ -182,7 +181,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
 CREATE OR REPLACE PROCEDURE ActualizarAsignatura(id INT, nombre VARCHAR, docente_id INT)
 LANGUAGE plpgsql
 AS $$
@@ -198,6 +196,7 @@ BEGIN
     DELETE FROM Asignaturas WHERE id_asignatura = id;
 END;
 $$;
+
 
 -- Evaluaciones
 CREATE OR REPLACE PROCEDURE CrearEvaluacion(fecha_inicio DATE, fecha_fin DATE, estado estado_evaluacion, descripcion TEXT)
@@ -238,6 +237,7 @@ BEGIN
 END;
 $$;
 
+
 -- Comentarios
 CREATE OR REPLACE PROCEDURE InsertarComentario(id_estudiante INT, id_docente INT, id_asignatura INT, id_evaluacion INT, comentario TEXT)
 LANGUAGE plpgsql
@@ -255,7 +255,7 @@ RETURNS TABLE(
     id_docente INT,
     id_asignatura INT,
     id_evaluacion INT,
-    contenido TEXT, -- <- CAMBIADO AQUI
+    contenido TEXT,
     fecha_creacion TIMESTAMP
 )
 AS $$
@@ -267,14 +267,12 @@ BEGIN
         c.id_docente,
         c.id_asignatura,
         c.id_evaluacion,
-        c.comentario AS contenido, -- <- CAMBIADO AQUI
+        c.comentario AS contenido,
         c.fecha_creacion
     FROM Comentarios c
     WHERE c.id_comentario = id;
 END;
 $$ LANGUAGE plpgsql;
-
-
 
 CREATE OR REPLACE PROCEDURE ActualizarComentario(
     IN id INT,
@@ -305,3 +303,80 @@ BEGIN
     DELETE FROM Comentarios WHERE id_comentario = id;
 END;
 $$;
+
+
+-- Triggers
+-- Trigger de creación de Usuario
+
+CREATE OR REPLACE FUNCTION validar_email_unico()
+RETURNS TRIGGER AS $$
+DECLARE
+    existe INT;
+BEGIN
+    SELECT COUNT(*) INTO existe FROM Usuarios WHERE email = NEW.email;
+    
+    IF existe > 0 THEN
+        RAISE EXCEPTION 'El nuevo usuario no puede tener email repetido, utilice un email diferente a (%)', NEW.email;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER email_unico_trigger
+BEFORE INSERT ON Usuarios
+FOR EACH ROW
+EXECUTE FUNCTION validar_email_unico();
+
+
+-- Trigger para no permitir borrar usuarios admin
+CREATE OR REPLACE FUNCTION proteger_admin()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.rol = 'Administrador' THEN
+        RAISE EXCEPTION 'No se puede eliminar un administrador.';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_proteger_admin
+BEFORE DELETE ON Usuarios
+FOR EACH ROW
+EXECUTE FUNCTION proteger_admin();
+
+
+-- Trigger de creación de evaluación
+
+CREATE OR REPLACE FUNCTION validar_evaluacion_descripcion()
+RETURNS trigger AS $$
+BEGIN
+    IF NEW.descripcion = OLD.descripcion THEN
+        RAISE EXCEPTION 'La evaluación ya se encuentra en la base de datos.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER validar_evaluacion
+BEFORE UPDATE ON Evaluaciones
+FOR EACH ROW
+EXECUTE FUNCTION validar_evaluacion_descripcion();
+
+
+-- Trigger de inserción de comentarios
+
+CREATE OR REPLACE FUNCTION validar_comentario_asignatura_evaluacion()
+RETURNS trigger AS $$
+BEGIN
+    IF NEW.id_asignatura = OLD.id_asignatura AND NEW.id_evaluacion = OLD.id_evaluacion THEN
+        RAISE EXCEPTION 'La evaluación de la asignatura en cuestión ya se ha introducido.';
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER validar_comentario
+BEFORE UPDATE ON Comentarios
+FOR EACH ROW
+EXECUTE FUNCTION validar_comentario_asignatura_evaluacion();

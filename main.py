@@ -39,13 +39,13 @@ def get_db():
 @app.post("/usuarios/", response_model=UserResponse)#✅
 
 def crear_usuario(user: UserCreate, db: Session = Depends(get_db)):
-    nuevo = crud.create_user(db, user)
 
+    nuevo = crud.create_user(db, user)
     if not nuevo:
         raise HTTPException(status_code=400, detail="No se pudo crear el usuario")
 
     #return nuevo
-    return JSONResponse(content={"mensaje": "Usuario creado"}, status_code=201) 
+    return JSONResponse(content=nuevo, status_code=201) 
 
 
 @app.get("/usuarios/{id_usuario}", response_model=UserResponse)#✅
@@ -174,7 +174,7 @@ def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)
     creada = crud.create_comentario(db, comentario)
 
     if creada is None:
-        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
     return JSONResponse(content=creada, status_code=201)
 
 
@@ -184,7 +184,7 @@ def obtener_comentario(id_comentario: int, db: Session = Depends(get_db)):
     comentario = crud.get_comentario(db, id_comentario)
 
     if comentario is None:
-        raise HTTPException(status_code=404, detail="comentario no encontrada")
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
     return comentario
 
 
@@ -194,7 +194,7 @@ def actualizar_comentario(id_comentario: int, comentario: ComentarioUpdate, db: 
     actualizada = crud.update_comentario(db, id_comentario, comentario)
 
     if actualizada is None:
-        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
     return JSONResponse(content=actualizada, status_code=201)
 
 
@@ -204,5 +204,5 @@ def eliminar_comentario(id_comentario: int, db: Session = Depends(get_db)):
     eliminada = crud.delete_comentario(db, id_comentario)
 
     if eliminada is None:
-        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
     return JSONResponse(content=eliminada, status_code=201)

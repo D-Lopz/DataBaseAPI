@@ -16,6 +16,7 @@ def get_user(db: Session, user_id: int):
 
 
 def create_user(db: Session, user):
+    
     db.execute(text("""
         CALL CrearUsuario(:nombre, :email, :rol, :contrasena)
     """), {
@@ -25,7 +26,6 @@ def create_user(db: Session, user):
         "contrasena": user.contrasena
     })
     db.commit()
-
     return {"message": "Usuario creado con éxito"}
 
 
@@ -44,13 +44,7 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate):
         
         # Realizar commit para guardar los cambios en la base de datos
         db.commit()
-        #Consultar el usuario actualizado para devolverlo
-        # usuario_actualizado = db.query(models.User).filter(models.User.id_usuario == user_id).first()
-        # Verificar si el usuario existe
-        # if usuario_actualizado:
-        #     return usuario_actualizado
-        # else:
-        #     return {"error": "Usuario no encontrado"}
+        
         result = db.execute(text("SELECT * FROM LeerUsuario(:id)"), {"id": user_id})
         return result.fetchone()
 
@@ -74,6 +68,7 @@ def delete_user(db, user_id: int):
         # Buscar mensaje entre 'RaiseException:' y 'CONTEXT:' (o fin de línea)
         match = re.search(r'RaiseException:\s*(.*?)\s*CONTEXT:', error_message, re.DOTALL)
         user_friendly_message = match.group(1).strip() if match else "No se puede eliminar el usuario porque tiene comentarios relacionados."
+
         raise HTTPException(status_code=400, detail=f"ERROR:  {user_friendly_message}")
 
 # --------------------- Asignaturas --------------------- #

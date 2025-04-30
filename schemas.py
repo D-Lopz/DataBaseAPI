@@ -99,4 +99,3 @@ class ComentarioResponse(ComentarioBase):
 
     class Config:
         from_attributes = True
-
