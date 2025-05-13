@@ -82,7 +82,7 @@ class ComentarioBase(BaseModel):
     id_docente: int     
     id_asignatura: int    
     id_evaluacion: int   
-    contenido: str       
+    comentario: str       
 
 class ComentarioCreate(ComentarioBase):
     pass
@@ -92,10 +92,11 @@ class ComentarioUpdate(BaseModel):
     id_docente: int     
     id_asignatura: int    
     id_evaluacion: int   
-    contenido: str 
+    comentario: str 
 
 class ComentarioResponse(ComentarioBase):
     id_comentario: int
-
+    sentimiento: str
+    
     class Config:
         from_attributes = True

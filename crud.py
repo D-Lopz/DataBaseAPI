@@ -1,7 +1,8 @@
 from models import User, Asignatura, Comentario, Reporte
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
 from schemas import UserUpdate, ComentarioUpdate
+from sqlalchemy.orm import Session
+from fastapi import HTTPException
+from chat.chat import chat_bot
 from sqlalchemy import text
 import schemas
 import re
@@ -166,14 +167,19 @@ def get_comentario(db: Session, comentario_id: int):
 # Crear un comentario
 def create_comentario(db: Session, comentario):
 
+    # Obtener el sentimiento utilizando la función chat_bot
+    sentimiento = chat_bot(comentario.comentario)
+
+    # Insertar el comentario y el sentimiento en la base de datos
     db.execute(text("""
-        CALL InsertarComentario(:idEst, :idDoc, :idAsig, :idEval, :comentarioTexto)
+        CALL InsertarComentario(:idEst, :idDoc, :idAsig, :idEval, :comentario, :sentimiento)
     """), {
         "idEst": comentario.id_estudiante,
         "idDoc": comentario.id_docente,
         "idAsig": comentario.id_asignatura,
         "idEval": comentario.id_evaluacion,
-        "comentarioTexto": comentario.contenido
+        "comentario": comentario.comentario,
+        "sentimiento": sentimiento  # Pasamos el sentimiento analizado
     })
     db.commit()
     return {"message": "Comentario creado con éxito"}

@@ -5,14 +5,28 @@ from database import SessionLocal, engine, Base
 from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 import crud
 import re
+import os
 
 from schemas import (
     UserCreate, UserResponse, UserUpdate,
     AsignaturaCreate, AsignaturaResponse, AsignaturaUpdate,
     EvaluacionCreate, EvaluacionResponse, EvaluacionUpdate,
     ComentarioCreate, ComentarioResponse, ComentarioUpdate
+)
+load_dotenv()
+
+app = FastAPI()
+Base.metadata.create_all(bind=engine)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # O especifica ["http://localhost:3000"] si usas React, por ejemplo
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 #Corroboración de la conexion a la base de datos
@@ -23,9 +37,6 @@ except Exception as e:
     print(f"Error al conectar a la base de datos: {e}")
 
 
-app = FastAPI()
-Base.metadata.create_all(bind=engine)
-
 def get_db():
     db = SessionLocal()
     try:
@@ -33,6 +44,16 @@ def get_db():
 
     finally:
         db.close()
+
+# ---------------------- Ruta para sentimiento resumido en dashboard----------------------#
+
+@app.get("/resumen-sentimientos/")
+def obtener_resumen_sentimientos(db: Session = Depends(get_db)):
+    resultados = db.execute(text("SELECT * FROM resumen_sentimientos_global()")).fetchall()
+    return JSONResponse(content = [
+        {"sentimiento": r[0], "total": r[1], "porcentaje": float(r[2])}
+        for r in resultados
+    ], status_code = 201)
 
 # ---------------------- Rutas para usuarios ----------------------#
 
@@ -171,12 +192,15 @@ def eliminar_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
 @app.post("/comentarios/", response_model=ComentarioResponse)
 
 def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)):
-    creada = crud.create_comentario(db, comentario)
 
-    if creada is None:
-        raise HTTPException(status_code=404, detail="Comentario no encontrado")
-    return JSONResponse(content=creada, status_code=201)
+    try:
+        creada = crud.create_comentario(db, comentario)
+        return JSONResponse(content=creada, status_code=201)
 
+    except Exception as e:
+        # Opcional: log del error
+        print(f"Error al crear comentario: {e}")
+        raise HTTPException(status_code=500, detail="Error al procesar el comentario")
 
 @app.get("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 
