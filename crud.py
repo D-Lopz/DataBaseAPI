@@ -4,8 +4,37 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from chat.chat import chat_bot
 from sqlalchemy import text
+from database import Base
 import schemas
 import re
+
+# --------------------- Sentimientos por docente --------------------- #
+
+
+def obtener_resumen_sentimientos(db: Session, id_docente: int):
+
+    # Ejecutamos la función en la base de datos
+    result = db.execute(
+        text("SELECT * FROM ObtenerResumenSentimientosPorDocente(:id_docente)"),
+        {"id_docente": id_docente}
+    ).fetchall()
+
+    # Convertimos el resultado en un formato de lista de diccionarios
+    resumen = []
+    for row in result:
+        resumen.append({
+            "id_docente": row[0],
+            "nombre_docente": row[1],
+            "id_asignatura": row[2],
+            "nombre_asignatura": row[3],
+            "total_comentarios": row[4],
+            "positivos": row[5],
+            "neutrales": row[6],
+            "negativos": row[7],
+        })
+    
+    return resumen
+
 
 # --------------------- Usuarios --------------------- #
 

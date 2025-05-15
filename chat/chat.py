@@ -25,4 +25,4 @@ def chat_bot(comentarioTexto):
         return resultado
 
     except Exception as e:
-        return "neutral"  # o mejor: loggear el error pero no guardar el mensaje completo
+        return "neutral"

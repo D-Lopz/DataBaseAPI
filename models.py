@@ -13,6 +13,15 @@ class User(Base):
     fecha_creacion = Column(DateTime, server_default=func.now())
 
 
+class Docente(Base):
+    __tablename__ = 'docente'
+    id_docente = Column(Integer, primary_key=True)
+    titulo = Column(String, nullable=False)
+    certificado = Column(String)
+
+    usuario_id = Column(Integer, ForeignKey('usuarios.id_usuario'))
+    usuario = relationship('Usuarios', back_populates='docente')  # Relación con la tabla Usuarios
+
 class Asignatura(Base):
     __tablename__ = 'asignaturas'
 

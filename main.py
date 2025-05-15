@@ -1,21 +1,30 @@
-from sqlalchemy.exc import DBAPIError, IntegrityError
-from fastapi import FastAPI, Depends, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from database import SessionLocal, engine, Base
-from fastapi.responses import JSONResponse
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from dotenv import load_dotenv
-import crud
-import re
-import os
-
 from schemas import (
     UserCreate, UserResponse, UserUpdate,
     AsignaturaCreate, AsignaturaResponse, AsignaturaUpdate,
     EvaluacionCreate, EvaluacionResponse, EvaluacionUpdate,
     ComentarioCreate, ComentarioResponse, ComentarioUpdate
 )
+from JWTKeys import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, pwd_context, oauth2_scheme
+from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
+from sqlalchemy.exc import DBAPIError, IntegrityError
+from fastapi import FastAPI, Depends, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from database import SessionLocal, engine, Base
+from fastapi.responses import JSONResponse
+from sqlalchemy import create_engine, text
+from passlib.context import CryptContext
+from datetime import datetime, timedelta
+from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+from pydantic import BaseModel
+from jose import jwt, JWTError
+from typing import List
+import psycopg2
+import schemas
+import crud
+import re
+import os
+
 load_dotenv()
 
 app = FastAPI()
@@ -54,6 +63,25 @@ def obtener_resumen_sentimientos(db: Session = Depends(get_db)):
         {"sentimiento": r[0], "total": r[1], "porcentaje": float(r[2])}
         for r in resultados
     ], status_code = 201)
+
+
+# ---------------------- Ruta para sentimientos por docente----------------------#
+
+@app.get("/resumen_sentimientos/{id_docente}", response_model=List[schemas.ResumenSentimientos])
+
+def obtener_resumen(id_docente: int, db: Session = Depends(get_db)):
+
+    try:
+        # Llamamos a la función CRUD que interactúa con la base de datos
+        resumen = crud.obtener_resumen_sentimientos(db, id_docente)
+
+        if not resumen:
+            raise HTTPException(status_code=404, detail="Resumen de sentimientos no encontrado")
+
+        return resumen
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al obtener el resumen: {str(e)}")
 
 # ---------------------- Rutas para usuarios ----------------------#
 

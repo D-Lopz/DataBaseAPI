@@ -182,15 +182,17 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE LeerUsuario(id INT)
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE FUNCTION LeerUsuario(id integer)
+RETURNS TABLE (id_usuario integer, nombre character varying, email character varying, rol character varying) AS
+$$
 BEGIN
-    SELECT u.id_usuario, u.nombre, u.email, u.rol, u.contrasena, u.fecha_creacion
-    FROM Usuarios u
+    RETURN QUERY
+    SELECT u.id_usuario, u.nombre, u.email, u.rol
+    FROM usuarios u
     WHERE u.id_usuario = id;
 END;
-$$;
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE PROCEDURE ActualizarUsuario(
     IN p_id_usuario INT,
@@ -236,10 +238,16 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE LeerAsignatura(id INT)
+CREATE OR REPLACE FUNCTION LeerAsignatura(id INT)
+RETURNS TABLE (
+    id_asignatura INT,
+    nombre_asignatura TEXT,
+    id_docente INT
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    RETURN QUERY
     SELECT a.id_asignatura, a.nombre_asignatura, a.id_docente
     FROM Asignaturas a
     WHERE a.id_asignatura = id;
@@ -272,15 +280,21 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE LeerEvaluacion(id INT)
-LANGUAGE plpgsql
-AS $$
+CREATE OR REPLACE FUNCTION LeerEvaluacion(id integer)
+RETURNS TABLE (
+    id_evaluacion integer,
+    fecha_inicio date,
+    fecha_fin date,
+    estado varchar(20),
+    descripcion text
+) AS $$
 BEGIN
+    RETURN QUERY
     SELECT e.id_evaluacion, e.fecha_inicio, e.fecha_fin, e.estado, e.descripcion
     FROM Evaluaciones e
     WHERE e.id_evaluacion = id;
 END;
-$$;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE PROCEDURE ActualizarEvaluacion(id INT, fech_inicio DATE, fech_fin DATE, estado_e estado_evaluacion, descripcion_e TEXT)
 LANGUAGE plpgsql
@@ -330,10 +344,20 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE LeerComentario(id INT)
+CREATE OR REPLACE FUNCTION LeerComentario(id INT)
+RETURNS TABLE (
+    id_comentario INT,
+    id_estudiante INT,
+    id_docente INT,
+    id_asignatura INT,
+    id_evaluacion INT,
+    contenido TEXT,
+    fecha_creacion TIMESTAMP
+)
 LANGUAGE plpgsql
 AS $$
 BEGIN
+    RETURN QUERY
     SELECT 
         c.id_comentario,
         c.id_estudiante,

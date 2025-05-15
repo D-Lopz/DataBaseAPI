@@ -1,7 +1,24 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
+from database import Base
+from typing import List
 
+#Esquema para sentimientos
+
+# Definimos el esquema para la respuesta
+class ResumenSentimientos(BaseModel):
+    id_docente: int
+    nombre_docente: str
+    id_asignatura: int
+    nombre_asignatura: str
+    total_comentarios: int
+    positivos: int
+    neutrales: int
+    negativos: int
+
+    class Config:
+        from_attributes = True  # Esto permite que FastAPI utilice los modelos de SQLAlchemy directamente
 
 
 # CRUD para usuarios
@@ -97,6 +114,6 @@ class ComentarioUpdate(BaseModel):
 class ComentarioResponse(ComentarioBase):
     id_comentario: int
     sentimiento: str
-    
+
     class Config:
         from_attributes = True
