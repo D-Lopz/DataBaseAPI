@@ -250,7 +250,7 @@ def get_docentes(db: Session):
 
 def get_comentarios_por_docente(db: Session, nombre_docente: str):
     query = text("""
-        SELECT asignatura, comentario, fecha_creacion
+        SELECT asignatura, comentario, fecha_creacion, sentimiento
         FROM VistaComentariosPorDocente
         WHERE nombre_docente = :nombre_docente
     """)
@@ -262,7 +262,8 @@ def get_comentarios_por_docente(db: Session, nombre_docente: str):
         comentarios.append({
             "asignatura": row.asignatura,
             "comentario": row.comentario,
-            "fecha_creacion": row.fecha_creacion
+            "fecha_creacion": row.fecha_creacion,
+            "sentimiento": row.sentimiento
         })
     return comentarios
 

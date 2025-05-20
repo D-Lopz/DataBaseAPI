@@ -213,8 +213,11 @@ def eliminar_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
 @app.post("/comentarios/", response_model=ComentarioResponse)
 
 def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)):
-    return crud.create_comentario(db, comentario)
+    creado = crud.create_comentario(db, comentario)
 
+    if creado is None:
+        raise HTTPException(status_code=404, detail="Comentario no encontrada")
+    return JSONResponse(content=creado, status_code=201)
 
 @app.get("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 

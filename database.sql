@@ -1,208 +1,303 @@
--- Crear la base de datos
+-- Crear la base de datos y usarla
 CREATE DATABASE IF NOT EXISTS nlp_comentarios;
-\c nlp_comentarios;
+USE nlp_comentarios;
 
--- Tabla de Usuarios
+-- Tabla Usuarios
 CREATE TABLE IF NOT EXISTS Usuarios (
-    id_usuario SERIAL PRIMARY KEY,
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    rol VARCHAR(20) CHECK (rol IN ('Administrador', 'Estudiante', 'Docente')) NOT NULL,
+    rol ENUM('Administrador', 'Estudiante', 'Docente') NOT NULL,
     contrasena VARCHAR(255) NOT NULL,
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Crear tabla Docente
+-- Tabla Docente
 CREATE TABLE IF NOT EXISTS Docente (
     id_docente INT PRIMARY KEY,
     titulo VARCHAR(150) NOT NULL,
-    certificado VARCHAR(255), -- Puede ser la ruta del archivo o un enlace
-    FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
+    certificado VARCHAR(255),
+    CONSTRAINT fk_docente_usuario FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Crear tabla Estudiante
+-- Tabla Estudiante
 CREATE TABLE IF NOT EXISTS Estudiante (
     id_estudiante INT PRIMARY KEY,
-    estado VARCHAR(20) CHECK (estado IN ('Activo', 'Inactivo')) DEFAULT 'Activo',
-    codigo VARCHAR(20) UNIQUE NOT NULL,
+    estado ENUM('Activo', 'Inactivo') DEFAULT 'Activo',
+    codigo VARCHAR(20) NOT NULL UNIQUE,
     telefono VARCHAR(15),
     cuenta_social VARCHAR(255),
-    FOREIGN KEY (id_estudiante) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT fk_estudiante_usuario FOREIGN KEY (id_estudiante) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Crear tabla Administrativos
+-- Tabla Administrativos
 CREATE TABLE IF NOT EXISTS Administrativos (
     id_administrativo INT PRIMARY KEY,
     area VARCHAR(100) NOT NULL,
     cargo VARCHAR(100) NOT NULL,
     telefono VARCHAR(15),
     correo_institucional VARCHAR(100) UNIQUE,
-    FOREIGN KEY (id_administrativo) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
+    CONSTRAINT fk_administrativo_usuario FOREIGN KEY (id_administrativo) REFERENCES Usuarios(id_usuario) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
--- Tabla de Asignaturas
+-- Tabla Asignaturas
 CREATE TABLE IF NOT EXISTS Asignaturas (
-    id_asignatura SERIAL PRIMARY KEY,
+    id_asignatura INT AUTO_INCREMENT PRIMARY KEY,
     nombre_asignatura VARCHAR(100) NOT NULL,
     creditos INT,
     id_docente INT,
-    FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario)
+    CONSTRAINT fk_asignatura_docente FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario)
 );
 
--- Tabla de Evaluaciones
+-- Tabla Evaluaciones
 CREATE TABLE IF NOT EXISTS Evaluaciones (
-    id_evaluacion SERIAL PRIMARY KEY,
+    id_evaluacion INT AUTO_INCREMENT PRIMARY KEY,
     fecha_inicio DATE NOT NULL,
     fecha_fin DATE NOT NULL,
-    estado VARCHAR(20) CHECK (estado IN ('Activo', 'Inactivo')) DEFAULT 'Inactivo',
+    estado ENUM('Activo', 'Inactivo') DEFAULT 'Inactivo',
     descripcion TEXT
 );
 
--- Tabla de Comentarios
+-- Tabla Comentarios
 CREATE TABLE IF NOT EXISTS Comentarios (
-    id_comentario SERIAL PRIMARY KEY,
+    id_comentario INT AUTO_INCREMENT PRIMARY KEY,
     id_estudiante INT,
     id_docente INT,
     id_asignatura INT,
     id_evaluacion INT,
     comentario TEXT NOT NULL,
-    sentimiento VARCHAR(10)
-        CHECK (sentimiento IN ('positivo', 'negativo', 'neutral')),
+    sentimiento ENUM('positivo', 'negativo', 'neutral'),
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id_estudiante) REFERENCES Usuarios(id_usuario),
-    FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario),
-    FOREIGN KEY (id_asignatura) REFERENCES Asignaturas(id_asignatura),
-    FOREIGN KEY (id_evaluacion) REFERENCES Evaluaciones(id_evaluacion)
+    CONSTRAINT fk_comentario_estudiante FOREIGN KEY (id_estudiante) REFERENCES Usuarios(id_usuario),
+    CONSTRAINT fk_comentario_docente FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario),
+    CONSTRAINT fk_comentario_asignatura FOREIGN KEY (id_asignatura) REFERENCES Asignaturas(id_asignatura),
+    CONSTRAINT fk_comentario_evaluacion FOREIGN KEY (id_evaluacion) REFERENCES Evaluaciones(id_evaluacion)
 );
 
--- Tabla de Análisis de Sentimientos
+-- Tabla Analisis_sentimientos
 CREATE TABLE IF NOT EXISTS Analisis_sentimientos (
-    id_analisis SERIAL PRIMARY KEY,
+    id_analisis INT AUTO_INCREMENT PRIMARY KEY,
     id_comentario INT,
-    sentimiento VARCHAR(20) CHECK (sentimiento IN ('Positivo', 'Negativo', 'Neutral')),
+    sentimiento ENUM('Positivo', 'Negativo', 'Neutral'),
     resumen TEXT,
     puntuacion DECIMAL(3,2),
-    FOREIGN KEY (id_comentario) REFERENCES Comentarios(id_comentario)
+    CONSTRAINT fk_analisis_comentario FOREIGN KEY (id_comentario) REFERENCES Comentarios(id_comentario)
 );
 
--- Tabla de Reportes
+-- Tabla Reportes
 CREATE TABLE IF NOT EXISTS Reportes (
-    id_reporte SERIAL PRIMARY KEY,
+    id_reporte INT AUTO_INCREMENT PRIMARY KEY,
     id_docente INT,
     fecha_generacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     contenido TEXT,
-    formato VARCHAR(10) CHECK (formato IN ('PDF', 'Excel')),
-    FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario)
+    formato ENUM('PDF', 'Excel'),
+    CONSTRAINT fk_reporte_docente FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario)
 );
 
--- Tabla de Semestre
+-- Tabla Semestre
 CREATE TABLE IF NOT EXISTS Semestre (
-    id_semestre SERIAL PRIMARY KEY,
+    id_semestre INT AUTO_INCREMENT PRIMARY KEY,
     nombre_semestre VARCHAR(50) NOT NULL,
     periodo YEAR NOT NULL,
     fecha_inicio DATE NOT NULL,
     fecha_final DATE NOT NULL
 );
 
--- Tabla de Programa
+-- Tabla Programa
 CREATE TABLE IF NOT EXISTS Programa (
-    id_programa SERIAL PRIMARY KEY,
+    id_programa INT AUTO_INCREMENT PRIMARY KEY,
     nombre_programa VARCHAR(50) NOT NULL,
     codigo VARCHAR(50) NOT NULL
 );
 
--- Tabla de Materias_Docentes_Semestre
+-- Tabla Materias_Docentes_Semestre (MDS)
 CREATE TABLE IF NOT EXISTS MDS (
-    id_mds SERIAL PRIMARY KEY,
+    id_mds INT AUTO_INCREMENT PRIMARY KEY,
     id_docente INT,
     id_asignatura INT,
     id_semestre INT,
-    FOREIGN KEY (id_docente) REFERENCES Docente(id_docente),
-    FOREIGN KEY (id_asignatura) REFERENCES Asignaturas(id_asignatura),
-    FOREIGN KEY (id_semestre) REFERENCES Semestre(id_semestre)
+    CONSTRAINT fk_mds_docente FOREIGN KEY (id_docente) REFERENCES Docente(id_docente),
+    CONSTRAINT fk_mds_asignatura FOREIGN KEY (id_asignatura) REFERENCES Asignaturas(id_asignatura),
+    CONSTRAINT fk_mds_semestre FOREIGN KEY (id_semestre) REFERENCES Semestre(id_semestre)
 );
 
--- Tabla Materia Estudiante
+-- Tabla Materia Estudiante (ME)
 CREATE TABLE IF NOT EXISTS ME (
-    id_me SERIAL PRIMARY KEY,
+    id_me INT AUTO_INCREMENT PRIMARY KEY,
     id_estudiante INT,
     id_asignatura INT,
-    FOREIGN KEY (id_estudiante) REFERENCES Estudiante(id_estudiante),
-    FOREIGN KEY (id_asignatura) REFERENCES Asignaturas(id_asignatura)
+    CONSTRAINT fk_me_estudiante FOREIGN KEY (id_estudiante) REFERENCES Estudiante(id_estudiante),
+    CONSTRAINT fk_me_asignatura FOREIGN KEY (id_asignatura) REFERENCES Asignaturas(id_asignatura)
 );
 
--- Índices
-CREATE INDEX idx_usuario_rol ON Usuarios(rol);
-CREATE INDEX idx_comentario_fecha ON Comentarios(fecha_creacion);
-CREATE INDEX idx_analisis_sentimiento ON Analisis_sentimientos(sentimiento);
-
--- Datos iniciales
+-- Usuarios: mínimo 5
 INSERT INTO Usuarios (nombre, email, rol, contrasena)
-VALUES 
-('Nicolas Vargas', 'nicolas@hotmail.com', 'Estudiante', '123'),
-('Ana Maria', 'ana@hotmail.com', 'Docente', '123'),
-('Pablo Diago', 'diago@hotmail.com', 'Administrador', '123');
+VALUES
+('Nicolas Vargas', 'nicolas@uniautonoma.edu.co', 'Estudiante', '123'),
+('Carlos Mendoza', 'carlosm@uniautonoma.edu.co', 'Estudiante', '123'),
+('Laura Pérez', 'laura.perez@uniautonoma.edu.co', 'Docente', '123'),
+('Miguel Soto', 'miguel.soto@uniautonoma.edu.co', 'Docente', '123'),
+('Elena Ruiz', 'elena.ruiz@uniautonoma.edu.co', 'Administrador', '123'),
+('Ana maría', 'anamaria@uniautonoma.edu.co', 'Docente', '123'),
+('Diego Prado', 'diegoprado@uniautonoma.edu.co', 'Docente', '123'),
+('Christian Cañar', 'christiancañar@Uniautonoma.edu.co', 'Docente', '123'),
+('Andrés Torres', 'andres.torres@Uniautonoma.edu.co', 'Administrador', 'admin123'),
+('Sofía Martínez', 'sofia.martinez@Uniautonoma.edu.co', 'Administrador', 'admin123'),
+('Luis Ramírez', 'luis.ramirez@Uniautonoma.edu.co', 'Administrador', 'admin123'),
+('Camila Herrera', 'camila.herrera@Uniautonoma.edu.co', 'Administrador', 'admin123'),
+('Fernando López', 'fernando.lopez@Uniautonoma.edu.co', 'Administrador', 'admin123');
 
+-- Docentes: 5 (deben estar en Usuarios con rol 'Docente')
+INSERT INTO Docente (id_docente, titulo, certificado)
+VALUES
+(3, 'Ingeniera de Sistemas', 'certificados/ana_maria.pdf'),
+(4, 'Licenciado en Matemáticas', 'certificados/laura_perez.pdf'),
+(6, 'Magíster en Ciencias de la Computación', 'certificados/miguel_soto.pdf'),
+(7, 'Doctor en Educación', 'certificados/javier_garcia.pdf'),
+(8, 'Ingeniero en Informática', 'certificados/paula_gomez.pdf');
+
+-- Estudiantes: 5 (deben estar en Usuarios con rol 'Estudiante')
+INSERT INTO Estudiante (id_estudiante, estado, codigo, telefono, cuenta_social)
+VALUES
+(1, 'Activo', 'EST1001', '555-1234', '@nicolasvargas'),
+(2, 'Activo', 'EST1002', '555-5678', '@carlosm'),
+(9, 'Inactivo', 'EST1003', '555-8765', '@juan_rodriguez'),
+(10, 'Activo', 'EST1004', '555-4321', '@laura_gomez'),
+(11, 'Activo', 'EST1005', '555-1357', '@mariafernandez');
+
+-- Administrativos: 5 (deben estar en Usuarios con rol 'Administrativo')
+INSERT INTO Administrativos (id_administrativo, area, cargo, telefono, correo_institucional)
+VALUES
+(5, 'Recursos Humanos', 'Coordinadora', '555-2468', 'elena.ruiz@uni.edu'),
+(12, 'Admisiones', 'Asistente', '555-9753', 'andres.lopez@uni.edu'),
+(13, 'Contabilidad', 'Analista', '555-8642', 'paula.martinez@uni.edu'),
+(9, 'Tecnología', 'Soporte Técnico', '555-7531', 'jorge.mendez@uni.edu'),
+(10, 'Biblioteca', 'Administrador', '555-1597', 'marta.vargas@uni.edu');
+
+-- Asignaturas: 5
 INSERT INTO Asignaturas (nombre_asignatura, id_docente)
 VALUES
-('Ingeniería de software', 2),
-('Base de datos', 2),
-('Complejidad Algorítmica', 2);
+('Algoritmos y estructuras de datos', 4),
+('Bases de datos avanzadas', 5),
+('Sistemas operativos', 6),
+('Redes de computadoras', 7),
+('Inteligencia Artificial', 2);
 
+-- Evaluaciones: 5
 INSERT INTO Evaluaciones (fecha_inicio, fecha_fin, estado, descripcion)
 VALUES
-('2025-03-01', '2025-03-31', 'Activo', 'Evaluación del primer trimestre.'),
-('2025-06-01', '2025-06-30', 'Inactivo', 'Evaluación del segundo trimestre.'),
-('2025-09-01', '2025-09-30', 'Inactivo', 'Evaluación del tercer trimestre.');
+('2025-01-01', '2025-01-31', 'Inactivo', 'Evaluación inicial del semestre.'),
+('2025-04-01', '2025-04-30', 'Activo', 'Evaluación de mitad de semestre.'),
+('2025-07-01', '2025-07-31', 'Inactivo', 'Evaluación de seguimiento.'),
+('2025-10-01', '2025-10-31', 'Inactivo', 'Evaluación final.'),
+('2025-11-01', '2025-11-15', 'Inactivo', 'Evaluación especial.');
 
-INSERT INTO Comentarios (id_estudiante, id_docente, id_asignatura, id_evaluacion, comentario)
+-- Comentarios: 5
+INSERT INTO Comentarios (id_estudiante, id_docente, id_asignatura, id_evaluacion, comentario, sentimiento)
 VALUES
-(1, 2, 1, 1, 'La profesora explica muy bien los temas.'),
-(1, 2, 2, 2, 'Las clases fueron interesantes pero algo rápidas.'),
-(1, 2, 3, 1, 'Me gustó el enfoque práctico que se usó.');
+(1, 2, 1, 1, 'Muy buena metodología.', 'positivo'),
+(8, 4, 2, 2, 'El docente explica con claridad.', 'positivo'),
+(9, 5, 3, 3, 'A veces las clases son confusas.', 'negativo'),
+(10, 6, 4, 4, 'Excelente manejo del tema.', 'positivo'),
+(11, 7, 5, 5, 'Podría mejorar la interacción.', 'neutral');
 
--- Índices
-CREATE INDEX idx_usuario_rol ON Usuarios(rol);
-CREATE INDEX idx_comentario_fecha ON Comentarios(fecha_creacion);
-CREATE INDEX idx_analisis_sentimiento ON Analisis_sentimientos(sentimiento);
+-- Análisis de Sentimientos: 5
+INSERT INTO Analisis_sentimientos (id_comentario, sentimiento, resumen, puntuacion)
+VALUES
+(1, 'Positivo', 'Comentario favorable sobre la metodología.', 0.95),
+(2, 'Positivo', 'Explicaciones claras.', 0.90),
+(3, 'Negativo', 'Confusión en algunas clases.', 0.30),
+(4, 'Positivo', 'Excelente manejo.', 0.97),
+(5, 'Neutral', 'Comentario con sugerencias.', 0.60);
 
-CREATE TYPE rol_usuario AS ENUM ('Estudiante', 'Docente', 'Administrativo');
-CREATE TYPE estado_evaluacion AS ENUM ('Activo', 'Inactivo');
+-- Reportes: 5
+INSERT INTO Reportes (id_docente, contenido, formato)
+VALUES
+(2, 'Reporte del primer trimestre.', 'PDF'),
+(4, 'Reporte del segundo trimestre.', 'Excel'),
+(5, 'Reporte de evaluación especial.', 'PDF'),
+(6, 'Reporte de actividades académicas.', 'Excel'),
+(7, 'Reporte final del semestre.', 'PDF');
+
+-- Semestre: 5
+INSERT INTO Semestre (nombre_semestre, periodo, fecha_inicio, fecha_final)
+VALUES
+('Semestre 2024-1', 2024, '2024-01-01', '2024-06-30'),
+('Semestre 2024-2', 2024, '2024-07-01', '2024-12-31'),
+('Semestre 2025-1', 2025, '2025-01-01', '2025-06-30'),
+('Semestre 2025-2', 2025, '2025-07-01', '2025-12-31'),
+('Semestre 2026-1', 2026, '2026-01-01', '2026-06-30');
+
+-- Programa: 5
+INSERT INTO Programa (nombre_programa, codigo)
+VALUES
+('Ingeniería de Sistemas', 'IS2025'),
+('Ciencias de la Computación', 'CC2025'),
+('Matemáticas Aplicadas', 'MA2025'),
+('Administración de Empresas', 'AE2025'),
+('Psicología', 'PSI2025');
+
+-- MDS (Materia-Docente-Semestre): 5
+INSERT INTO MDS (id_docente, id_asignatura, id_semestre)
+VALUES
+(3, 1, 1),
+(4, 2, 2),
+(8, 3, 3),
+(6, 4, 4),
+(7, 5, 5);
+
+-- ME (Materia-Estudiante): 5
+INSERT INTO ME (id_estudiante, id_asignatura)
+VALUES
+(1, 1),
+(2, 2),
+(9, 3),
+(10, 4),
+(11, 5);
 
 
 -- PROCEDIMIENTOS ALMACENADOS
 
 -- Usuarios
-CREATE OR REPLACE PROCEDURE CrearUsuario(nombre VARCHAR, email VARCHAR, rol rol_usuario, contrasena VARCHAR)
-LANGUAGE plpgsql
-AS $$
+DELIMITER //
+
+CREATE PROCEDURE CrearUsuario (
+    IN p_nombre VARCHAR(100),
+    IN p_email VARCHAR(100),
+    IN p_rol ENUM('Administrador', 'Estudiante', 'Docente', 'Administrativo'),
+    IN p_contrasena VARCHAR(255)
+)
 BEGIN
     INSERT INTO Usuarios (nombre, email, rol, contrasena)
-    VALUES (nombre, email, rol, contrasena);
+    VALUES (p_nombre, p_email, p_rol, p_contrasena);
 END;
-$$;
+//
 
-CREATE OR REPLACE FUNCTION LeerUsuario(id integer)
-RETURNS TABLE (id_usuario integer, nombre character varying, email character varying, rol character varying) AS
-$$
-BEGIN
-    RETURN QUERY
-    SELECT u.id_usuario, u.nombre, u.email, u.rol
-    FROM usuarios u
-    WHERE u.id_usuario = id;
-END;
-$$ LANGUAGE plpgsql;
+DELIMITER ;
 
+DELIMITER //
 
-CREATE OR REPLACE PROCEDURE ActualizarUsuario(
-    IN p_id_usuario INT,
-    IN p_nombre VARCHAR,
-    IN p_email VARCHAR,
-    IN p_rol rol_usuario,
-    IN p_contrasena VARCHAR
+CREATE PROCEDURE LeerUsuario (
+    IN p_id INT
 )
-LANGUAGE plpgsql
-AS $$
+BEGIN
+    SELECT id_usuario, nombre, email, rol
+    FROM Usuarios
+    WHERE id_usuario = p_id;
+END;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE ActualizarUsuario (
+    IN p_id_usuario INT,
+    IN p_nombre VARCHAR(100),
+    IN p_email VARCHAR(100),
+    IN p_rol ENUM('Administrador', 'Estudiante', 'Docente', 'Administrativo'),
+    IN p_contrasena VARCHAR(255)
+)
 BEGIN
     UPDATE Usuarios
     SET nombre = p_nombre,
@@ -211,119 +306,172 @@ BEGIN
         contrasena = p_contrasena
     WHERE id_usuario = p_id_usuario;
 END;
-$$;
+//
 
-CREATE OR REPLACE PROCEDURE EliminarUsuario(id INTEGER)
-LANGUAGE plpgsql
-AS $$
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE PROCEDURE EliminarUsuario (
+    IN p_id INT
+)
 BEGIN
-    -- Verificar si hay comentarios relacionados
-    IF EXISTS (
-        SELECT 1 FROM Comentarios WHERE id_estudiante = id
-    ) THEN
-        RAISE EXCEPTION 'No se puede eliminar el usuario con ID % porque tiene comentarios relacionados.', id;
-    END IF;
+    DECLARE msg TEXT;
 
-    -- Si no hay comentarios, borrar el usuario
-    DELETE FROM Usuarios WHERE id_usuario = id;
-END;
-$$;
+    -- Verificar si hay comentarios relacionados
+    IF EXISTS (SELECT 1 FROM Comentarios WHERE id_estudiante = p_id) THEN
+        SET msg = CONCAT('No se puede eliminar el usuario con ID ', p_id, ' porque tiene comentarios relacionados.');
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = msg;
+    ELSE
+        -- Si no hay comentarios, borrar el usuario
+        DELETE FROM Usuarios WHERE id_usuario = p_id;
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+DELIMITER ;
+
 
 -- Asignaturas
-CREATE OR REPLACE PROCEDURE CrearAsignatura(nombre VARCHAR, id_docente INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    INSERT INTO Asignaturas (nombre_asignatura, id_docente) VALUES (nombre, id_docente);
-END;
-$$;
+DELIMITER //
 
-CREATE OR REPLACE FUNCTION LeerAsignatura(id INT)
-RETURNS TABLE (
-    id_asignatura INT,
-    nombre_asignatura TEXT,
-    id_docente INT
+CREATE PROCEDURE CrearAsignatura (
+    IN p_nombre VARCHAR(100),
+    IN p_id_docente INT
 )
-LANGUAGE plpgsql
-AS $$
 BEGIN
-    RETURN QUERY
-    SELECT a.id_asignatura, a.nombre_asignatura, a.id_docente
-    FROM Asignaturas a
-    WHERE a.id_asignatura = id;
+    INSERT INTO Asignaturas (nombre_asignatura, id_docente)
+    VALUES (p_nombre, p_id_docente);
 END;
-$$;
+//
 
-CREATE OR REPLACE PROCEDURE ActualizarAsignatura(id INT, nombre VARCHAR, docente_id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE Asignaturas SET nombre_asignatura = nombre, id_docente = docente_id WHERE id_asignatura = id;
-END;
-$$;
+DELIMITER ;
 
-CREATE OR REPLACE PROCEDURE EliminarAsignatura(id INT)
-LANGUAGE plpgsql
-AS $$
+DELIMITER //
+
+CREATE PROCEDURE LeerAsignatura (
+    IN p_id INT
+)
 BEGIN
-    DELETE FROM Asignaturas WHERE id_asignatura = id;
+    SELECT id_asignatura, nombre_asignatura, id_docente
+    FROM Asignaturas
+    WHERE id_asignatura = p_id;
 END;
-$$;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE ActualizarAsignatura (
+    IN p_id INT,
+    IN p_nombre VARCHAR(100),
+    IN p_id_docente INT
+)
+BEGIN
+    UPDATE Asignaturas
+    SET nombre_asignatura = p_nombre,
+        id_docente = p_id_docente
+    WHERE id_asignatura = p_id;
+END;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE EliminarAsignatura (
+    IN p_id INT
+)
+BEGIN
+    DELETE FROM Asignaturas
+    WHERE id_asignatura = p_id;
+END;
+//
+
+DELIMITER ;
+
 
 -- Evaluaciones
-CREATE OR REPLACE PROCEDURE CrearEvaluacion(fecha_inicio DATE, fecha_fin DATE, estado estado_evaluacion, descripcion TEXT)
-LANGUAGE plpgsql
-AS $$
+DELIMITER //
+
+CREATE PROCEDURE CrearEvaluacion (
+    IN p_fecha_inicio DATE,
+    IN p_fecha_fin DATE,
+    IN p_estado VARCHAR(20),
+    IN p_descripcion TEXT
+)
 BEGIN
     INSERT INTO Evaluaciones (fecha_inicio, fecha_fin, estado, descripcion)
-    VALUES (fecha_inicio, fecha_fin, estado, descripcion);
+    VALUES (p_fecha_inicio, p_fecha_fin, p_estado, p_descripcion);
 END;
-$$;
+//
 
-CREATE OR REPLACE FUNCTION LeerEvaluacion(id integer)
-RETURNS TABLE (
-    id_evaluacion integer,
-    fecha_inicio date,
-    fecha_fin date,
-    estado varchar(20),
-    descripcion text
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT e.id_evaluacion, e.fecha_inicio, e.fecha_fin, e.estado, e.descripcion
-    FROM Evaluaciones e
-    WHERE e.id_evaluacion = id;
-END;
-$$ LANGUAGE plpgsql;
+DELIMITER ;
 
-CREATE OR REPLACE PROCEDURE ActualizarEvaluacion(id INT, fech_inicio DATE, fech_fin DATE, estado_e estado_evaluacion, descripcion_e TEXT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    UPDATE Evaluaciones SET fecha_inicio = fech_inicio, fecha_fin = fech_fin,
-    estado = estado_e, descripcion = descripcion_e WHERE id_evaluacion = id;
-END;
-$$;
+DELIMITER //
 
-CREATE OR REPLACE PROCEDURE EliminarEvaluacion(id INT)
-LANGUAGE plpgsql
-AS $$
+CREATE PROCEDURE LeerEvaluacion (
+    IN p_id INT
+)
 BEGIN
-    DELETE FROM Evaluaciones WHERE id_evaluacion = id;
+    SELECT id_evaluacion, fecha_inicio, fecha_fin, estado, descripcion
+    FROM Evaluaciones
+    WHERE id_evaluacion = p_id;
 END;
-$$;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE ActualizarEvaluacion (
+    IN p_id INT,
+    IN p_fecha_inicio DATE,
+    IN p_fecha_fin DATE,
+    IN p_estado VARCHAR(20),
+    IN p_descripcion TEXT
+)
+BEGIN
+    UPDATE Evaluaciones
+    SET fecha_inicio = p_fecha_inicio,
+        fecha_fin = p_fecha_fin,
+        estado = p_estado,
+        descripcion = p_descripcion
+    WHERE id_evaluacion = p_id;
+END;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE EliminarEvaluacion (
+    IN p_id INT
+)
+BEGIN
+    DELETE FROM Evaluaciones
+    WHERE id_evaluacion = p_id;
+END;
+//
+
+DELIMITER ;
+
 
 -- Comentarios
-CREATE OR REPLACE PROCEDURE InsertarComentario(
-    id_estudiante INT, 
-    id_docente INT, 
-    id_asignatura INT, 
-    id_evaluacion INT, 
-    comentario TEXT,
-    sentimiento TEXT -- ← Nuevo campo
+DELIMITER //
+
+CREATE PROCEDURE InsertarComentario(
+    IN p_id_estudiante INT, 
+    IN p_id_docente INT, 
+    IN p_id_asignatura INT, 
+    IN p_id_evaluacion INT, 
+    IN p_comentario TEXT,
+    IN p_sentimiento TEXT
 )
-LANGUAGE plpgsql
-AS $$
 BEGIN
     INSERT INTO Comentarios (
         id_estudiante, 
@@ -331,173 +479,470 @@ BEGIN
         id_asignatura, 
         id_evaluacion, 
         comentario,
-        sentimiento -- ← Añadirlo en la inserción
+        sentimiento
     )
     VALUES (
-        id_estudiante, 
-        id_docente, 
-        id_asignatura, 
-        id_evaluacion, 
-        comentario,
-        sentimiento -- ← Guardar el sentimiento
+        p_id_estudiante, 
+        p_id_docente, 
+        p_id_asignatura, 
+        p_id_evaluacion, 
+        p_comentario,
+        p_sentimiento
     );
 END;
-$$;
+//
 
-CREATE OR REPLACE FUNCTION LeerComentario(id INT)
-RETURNS TABLE (
-    id_comentario INT,
-    id_estudiante INT,
-    id_docente INT,
-    id_asignatura INT,
-    id_evaluacion INT,
-    contenido TEXT,
-    fecha_creacion TIMESTAMP
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE LeerComentario(
+    IN p_id INT
 )
-LANGUAGE plpgsql
-AS $$
 BEGIN
-    RETURN QUERY
+    SELECT 
+        id_comentario,
+        id_estudiante,
+        id_docente,
+        id_asignatura,
+        id_evaluacion,
+        comentario,
+        fecha_creacion,
+        sentimiento
+    FROM Comentarios
+    WHERE id_comentario = p_id;
+END;
+//
+
+DELIMITER ;
+
+DELIMITER $$
+
+-- Busqueda por nombre de docente
+DELIMITER $$
+
+CREATE PROCEDURE ComentariosPorNombreDocente(IN nombre_docente VARCHAR(100))
+BEGIN
     SELECT 
         c.id_comentario,
         c.id_estudiante,
         c.id_docente,
         c.id_asignatura,
         c.id_evaluacion,
-        c.comentario AS contenido,
+        c.comentario,
+        c.sentimiento,
         c.fecha_creacion
     FROM Comentarios c
-    WHERE c.id_comentario = id;
-END;
-$$;
+    JOIN Usuarios u ON c.id_docente = u.id_usuario
+    JOIN Docente d ON d.id_docente = u.id_usuario
+    WHERE u.nombre = nombre_docente;
+END$$
 
-CREATE OR REPLACE PROCEDURE ActualizarComentario(
-    IN id INT,
-    IN id_est INT,
-    IN id_doc INT,
-    IN id_asig INT,
-    IN id_eval INT,
-    IN comentario_in TEXT
+DELIMITER ;
+
+-- Procedimiento para listar los docentes
+DELIMITER $$
+
+CREATE PROCEDURE ListarNombresDocentes()
+BEGIN
+    SELECT u.id_usuario, u.nombre
+    FROM usuario u
+    JOIN docente d ON u.id_usuario = d.id_usuario
+    ORDER BY u.nombre;
+END$$
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE ActualizarComentario(
+    IN p_id INT,
+    IN p_id_est INT,
+    IN p_id_doc INT,
+    IN p_id_asig INT,
+    IN p_id_eval INT,
+    IN p_comentario TEXT,
+    IN p_sentimiento TEXT
 )
-LANGUAGE plpgsql
-AS $$
 BEGIN
     UPDATE Comentarios
     SET 
-        id_estudiante = id_est,
-        id_docente = id_doc,
-        id_asignatura = id_asig,
-        id_evaluacion = id_eval,
-        comentario = comentario_in
-    WHERE id_comentario = id;
+        id_estudiante = p_id_est,
+        id_docente = p_id_doc,
+        id_asignatura = p_id_asig,
+        id_evaluacion = p_id_eval,
+        comentario = p_comentario,
+        sentimiento = p_sentimiento
+    WHERE id_comentario = p_id;
 END;
-$$;
+//
 
-CREATE OR REPLACE PROCEDURE EliminarComentario(id INT)
-LANGUAGE plpgsql
-AS $$
-BEGIN
-    DELETE FROM Comentarios WHERE id_comentario = id;
-END;
-$$;
---Funciones
+DELIMITER ;
 
---Función para mostar sentimientos como porcentaje
-CREATE OR REPLACE FUNCTION resumen_sentimientos_global()
-RETURNS TABLE (
-    sentimiento VARCHAR,
-    total INTEGER,
-    porcentaje NUMERIC
+DELIMITER //
+
+CREATE PROCEDURE EliminarComentario(
+    IN p_id INT
 )
-AS $$
 BEGIN
-  RETURN QUERY
-  WITH total_sentimientos AS (
-    SELECT CAST(LOWER(c.sentimiento) AS VARCHAR) AS sentimiento_val,
-           CAST(COUNT(*) AS INTEGER) AS total_val
-    FROM comentarios c
-    WHERE c.sentimiento IS NOT NULL
-    GROUP BY LOWER(c.sentimiento)
-  ),
-  total_general AS (
-    SELECT SUM(ts.total_val) AS total_general_val FROM total_sentimientos ts
-  )
-  SELECT 
-    ts.sentimiento_val AS sentimiento,
-    ts.total_val AS total,
-    ROUND((ts.total_val * 100.0) / tg.total_general_val, 2) AS porcentaje
-  FROM total_sentimientos ts, total_general tg;
+    DELETE FROM Comentarios
+    WHERE id_comentario = p_id;
 END;
-$$ LANGUAGE plpgsql;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE resumen_sentimientos_global()
+BEGIN
+    DECLARE total_count INT;
+
+    -- Calcular total general
+    SELECT COUNT(*) INTO total_count FROM analisis_sentimientos;
+
+    -- Mostrar resumen con porcentaje
+    SELECT 
+        sentimiento,
+        COUNT(*) AS total,
+        ROUND((COUNT(*) / total_count) * 100, 2) AS porcentaje
+    FROM 
+        analisis_sentimientos
+    GROUP BY 
+        sentimiento;
+END //
+
+
+
+-- Funciones
+
+-- Función para mostar sentimientos como porcentaje
+WITH total_sentimientos AS (
+    SELECT 
+        LOWER(sentimiento) AS sentimiento,
+        COUNT(*) AS total
+    FROM comentarios
+    WHERE sentimiento IS NOT NULL
+    GROUP BY LOWER(sentimiento)
+),
+total_general AS (
+    SELECT SUM(total) AS total_global
+    FROM total_sentimientos
+)
+SELECT 
+    ts.sentimiento,
+    ts.total,
+    ROUND((ts.total * 100.0) / tg.total_global, 2) AS porcentaje
+-- FROM total_sentimientos ts, total_general tg;
+
+-- Función para mostrar sentimientos por docente
+DELIMITER $$
+
+CREATE PROCEDURE resumen_sentimientos_por_nombre_docente(IN nombre_docente_input VARCHAR(255))
+BEGIN
+    SELECT 
+        d.id_usuario AS id_docente,
+        d.nombre AS nombre_docente,
+        a.id_asignatura,
+        a.nombre_asignatura,
+        COUNT(c.id_comentario) AS total_comentarios,
+        SUM(CASE WHEN LOWER(c.sentimiento) = 'positivo' THEN 1 ELSE 0 END) AS positivos,
+        SUM(CASE WHEN LOWER(c.sentimiento) = 'neutral' THEN 1 ELSE 0 END) AS neutrales,
+        SUM(CASE WHEN LOWER(c.sentimiento) = 'negativo' THEN 1 ELSE 0 END) AS negativos
+    FROM comentarios c
+    JOIN usuarios d ON c.id_docente = d.id_usuario
+    JOIN asignaturas a ON c.id_asignatura = a.id_asignatura
+    WHERE d.rol = 'Docente'
+      AND LOWER(d.nombre) LIKE CONCAT('%', LOWER(nombre_docente_input), '%')
+    GROUP BY d.id_usuario, d.nombre, a.id_asignatura, a.nombre_asignatura;
+END$$
+
+DELIMITER ;
 
 
 -- TRIGGERS
 
--- Trigger de creación de Usuario
-CREATE OR REPLACE FUNCTION validar_email_unico()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM Usuarios WHERE email = NEW.email) THEN
-        RAISE EXCEPTION 'El correo electrónico "%" ya está registrado.', NEW.email;
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- Triger para validar la creación de usuarios ✅
+DELIMITER $$
 
--- Trigger para ejecutar la función antes de insertar en Usuarios
 CREATE TRIGGER trigger_validar_email
 BEFORE INSERT ON Usuarios
 FOR EACH ROW
-EXECUTE FUNCTION validar_email_unico();
-
--- Trigger para no permitir borrar usuarios admin
-CREATE OR REPLACE FUNCTION proteger_admin()
-RETURNS TRIGGER AS $$
 BEGIN
-    IF OLD.rol = 'Administrador' THEN
-        RAISE EXCEPTION 'No se puede eliminar un administrador.';
+    DECLARE email_duplicado INT DEFAULT 0;
+    DECLARE msg VARCHAR(255);
+
+    SELECT COUNT(*) INTO email_duplicado
+    FROM Usuarios
+    WHERE email = NEW.email;
+
+    IF email_duplicado > 0 THEN
+        SET msg = CONCAT('El correo electrónico ', NEW.email, ' ya está registrado.');
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = msg;
     END IF;
-    RETURN OLD;
+END$$
+
+DELIMITER ;
+
+-- Triger para registrarse solo con correo institucional ✅
+DELIMITER //
+
+CREATE TRIGGER validar_email_institucional
+BEFORE INSERT ON Usuarios
+FOR EACH ROW
+BEGIN
+    -- Verifica si el nuevo email termina en '@uniautonoma.edu.co'
+    IF RIGHT(LOWER(TRIM(NEW.email)), LENGTH('@uniautonoma.edu.co')) != '@uniautonoma.edu.co' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Solo se permiten correos institucionales (@uniautonoma.edu.co)';
+    END IF;
 END;
-$$ LANGUAGE plpgsql;
+//
+CREATE TRIGGER validar_email_institucional_update
+BEFORE UPDATE ON Usuarios
+FOR EACH ROW
+BEGIN
+    IF NEW.email NOT LIKE '%@uniautonoma.edu.co' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Solo se permiten correos @uniautonoma.edu.co';
+    END IF;
+END;
+//
+
+DELIMITER ;
+
+-- Trigger para no permitir borrar usuarios admin ✅
+DELIMITER $$
 
 CREATE TRIGGER trigger_proteger_admin
 BEFORE DELETE ON Usuarios
 FOR EACH ROW
-EXECUTE FUNCTION proteger_admin();
-
--- Trigger para evitar campos nulos al ingresar y actualizar el usuario
-CREATE OR REPLACE FUNCTION validar_campos_usuario()
-RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.nombre IS NULL OR TRIM(NEW.nombre) = '' THEN
-        RAISE EXCEPTION 'Error: El nombre no puede estar vacío.';
+    IF OLD.rol = 'Administrador' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se puede eliminar un administrador.';
     END IF;
+END$$
 
-    IF NEW.email IS NULL OR TRIM(NEW.email) = '' THEN
-        RAISE EXCEPTION 'Error: El email no puede estar vacío.';
+DELIMITER ;
+
+-- Trigger para evitar cambiar el rol a los administradores ✅
+DELIMITER $$
+
+CREATE TRIGGER trigger_proteger_admin_actualizacion
+BEFORE UPDATE ON Usuarios
+FOR EACH ROW
+BEGIN
+    IF OLD.rol = 'Administrador' AND NEW.rol <> 'Administrador' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se puede cambiar el rol de un administrador.';
     END IF;
+END$$
 
-    IF NEW.rol IS NULL OR TRIM(NEW.rol::TEXT) = '' THEN
-        RAISE EXCEPTION 'Error: El rol no puede estar vacío.';
-    END IF;
+DELIMITER ;
 
-    IF NEW.contrasena IS NULL OR TRIM(NEW.contrasena) = '' THEN
-        RAISE EXCEPTION 'Error: La contraseña no puede estar vacía.';
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+-- Trigger para evitar campos nulos al insertar y actualizar usuarios ✅
+DELIMITER $$
 
 CREATE TRIGGER trigger_validar_usuario_insert
 BEFORE INSERT ON Usuarios
 FOR EACH ROW
-EXECUTE FUNCTION validar_campos_usuario();
+BEGIN
+    IF NEW.nombre IS NULL OR TRIM(NEW.nombre) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: El nombre no puede estar vacío.';
+    END IF;
+
+    IF NEW.email IS NULL OR TRIM(NEW.email) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: El email no puede estar vacío.';
+    END IF;
+
+    IF NEW.rol IS NULL OR TRIM(NEW.rol) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: El rol no puede estar vacío.';
+    END IF;
+
+    IF NEW.contrasena IS NULL OR TRIM(NEW.contrasena) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: La contraseña no puede estar vacía.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
 
 CREATE TRIGGER trigger_validar_usuario_update
 BEFORE UPDATE ON Usuarios
 FOR EACH ROW
-EXECUTE FUNCTION validar_campos_usuario();
+BEGIN
+    IF NEW.nombre IS NULL OR TRIM(NEW.nombre) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: El nombre no puede estar vacío.';
+    END IF;
 
--- Trigger de inserción de comentarios
+    IF NEW.email IS NULL OR TRIM(NEW.email) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: El email no puede estar vacío.';
+    END IF;
+
+    IF NEW.rol IS NULL OR TRIM(NEW.rol) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: El rol no puede estar vacío.';
+    END IF;
+
+    IF NEW.contrasena IS NULL OR TRIM(NEW.contrasena) = '' THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Error: La contraseña no puede estar vacía.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- Trigger de inserción de comentarios ✅
+DELIMITER $$
+
+CREATE TRIGGER validar_comentario
+BEFORE INSERT ON Comentarios
+FOR EACH ROW
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM Comentarios
+        WHERE id_asignatura = NEW.id_asignatura
+          AND id_evaluacion = NEW.id_evaluacion
+          AND id_estudiante = NEW.id_estudiante
+    ) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ya existe un comentario de este estudiante para esta asignatura y evaluación.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- Trigger para evitar elimiminar un docente con asignatura ✅
+DELIMITER $
+
+CREATE TRIGGER proteger_docente
+BEFORE DELETE ON Docente
+FOR EACH ROW
+BEGIN
+    IF EXISTS (SELECT 1 FROM Asignaturas WHERE id_docente = OLD.id_docente) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede eliminar el docente porque tiene asignaturas asignadas.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- Trigger para no borrar estudiantes con comentarios ✅
+DELIMITER $$
+
+CREATE TRIGGER trg_no_eliminar_estudiante_con_comentarios
+BEFORE DELETE ON Estudiante
+FOR EACH ROW
+BEGIN
+    IF EXISTS (SELECT 1 FROM Comentarios WHERE id_estudiante = OLD.id_estudiante) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se puede eliminar el estudiante porque tiene comentarios registrados.';
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- Trigger para evitar espacios en blanco para roles ✅
+
+DELIMITER //
+
+CREATE TRIGGER validar_rol_sin_espacios
+BEFORE INSERT ON Usuarios
+FOR EACH ROW
+BEGIN
+    IF TRIM(NEW.rol) NOT IN ('Administrador', 'Estudiante', 'Docente', 'Administrativo') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El rol ingresado no es válido o contiene espacios.';
+    END IF;
+END;
+//
+
+DELIMITER ;
+
+-- Trigger para evitar espacios en blancos para roles update ✅
+
+DELIMITER //
+
+CREATE TRIGGER validar_rol_sin_espacios_update
+BEFORE UPDATE ON Usuarios
+FOR EACH ROW
+BEGIN
+    IF TRIM(NEW.rol) NOT IN ('Administrador', 'Estudiante', 'Docente', 'Administrativo') THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'El rol actualizado no es válido o contiene espacios.';
+    END IF;
+END;
+//
+
+DELIMITER ;
+
+-- Trigger para evitar la misma descripcion de dos evaluaciones (insert, update) ✅
+DELIMITER //
+
+CREATE TRIGGER evitar_descripciones_duplicadas
+BEFORE INSERT ON Evaluaciones
+FOR EACH ROW
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM Evaluaciones WHERE descripcion = NEW.descripcion
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ya existe una evaluación con esta descripción.';
+    END IF;
+END;
+//
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE TRIGGER evitar_descripciones_duplicadas_update
+BEFORE UPDATE ON Evaluaciones
+FOR EACH ROW
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM Evaluaciones 
+        WHERE descripcion = NEW.descripcion 
+          AND id_evaluacion != NEW.id_evaluacion
+    ) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ya existe una evaluación con esta descripción.';
+    END IF;
+END;
+//
+
+-- Triger para evitar los comentarios nulos
+DELIMITER $$
+
+CREATE TRIGGER evitar_campos_nulos_comentarios_insert
+BEFORE INSERT ON comentarios
+FOR EACH ROW
+BEGIN
+    IF NEW.comentario IS NULL OR NEW.id_evaluacion IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se permiten campos nulos en comentario o id_evaluacion';
+    END IF;
+END$$
+
+CREATE TRIGGER evitar_campos_nulos_comentarios_update
+BEFORE UPDATE ON comentarios
+FOR EACH ROW
+BEGIN
+    IF NEW.comentario IS NULL OR NEW.id_evaluacion IS NULL THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se permiten campos nulos en comentario o id_evaluacion';
+    END IF;
+END$$
+
+DELIMITER ;
+
+
+-- Vistas
+
+-- Vista para que solo aparezcan los comentarios al seleccionar docente
+
+CREATE OR REPLACE VIEW VistaComentariosPorDocente AS
+SELECT
+  u.nombre                AS nombre_docente,
+  a.nombre_asignatura     AS asignatura,
+  c.comentario,
+  c.fecha_creacion
+FROM Comentarios c
+JOIN Usuarios u        ON c.id_docente = u.id_usuario
+JOIN Docente d         ON d.id_docente = u.id_usuario
+JOIN Asignaturas a     ON c.id_asignatura = a.id_asignatura;
