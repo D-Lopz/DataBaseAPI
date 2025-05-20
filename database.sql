@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS Comentarios (
 );
 
 -- Tabla de Análisis de Sentimientos
-CREATE TABLE IF NOT EXISTS AnalisisSentimientos (
+CREATE TABLE IF NOT EXISTS Analisis_sentimientos (
     id_analisis SERIAL PRIMARY KEY,
     id_comentario INT,
     sentimiento VARCHAR(20) CHECK (sentimiento IN ('Positivo', 'Negativo', 'Neutral')),
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS ME (
 -- Índices
 CREATE INDEX idx_usuario_rol ON Usuarios(rol);
 CREATE INDEX idx_comentario_fecha ON Comentarios(fecha_creacion);
-CREATE INDEX idx_analisis_sentimiento ON AnalisisSentimientos(sentimiento);
+CREATE INDEX idx_analisis_sentimiento ON Analisis_sentimientos(sentimiento);
 
 -- Datos iniciales
 INSERT INTO Usuarios (nombre, email, rol, contrasena)
@@ -164,7 +164,7 @@ VALUES
 -- Índices
 CREATE INDEX idx_usuario_rol ON Usuarios(rol);
 CREATE INDEX idx_comentario_fecha ON Comentarios(fecha_creacion);
-CREATE INDEX idx_analisis_sentimiento ON AnalisisSentimientos(sentimiento);
+CREATE INDEX idx_analisis_sentimiento ON Analisis_sentimientos(sentimiento);
 
 CREATE TYPE rol_usuario AS ENUM ('Estudiante', 'Docente', 'Administrativo');
 CREATE TYPE estado_evaluacion AS ENUM ('Activo', 'Inactivo');
@@ -501,22 +501,3 @@ FOR EACH ROW
 EXECUTE FUNCTION validar_campos_usuario();
 
 -- Trigger de inserción de comentarios
-CREATE OR REPLACE FUNCTION validar_comentario_asignatura_evaluacion()
-RETURNS trigger AS $$
-BEGIN
-    IF EXISTS (
-        SELECT 1 FROM Comentarios
-        WHERE id_asignatura = NEW.id_asignatura
-          AND id_evaluacion = NEW.id_evaluacion
-          AND id_estudiante = NEW.id_estudiante
-    ) THEN
-        RAISE EXCEPTION 'Ya existe un comentario de este estudiante para esta asignatura y evaluación.';
-    END IF;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER validar_comentario
-BEFORE INSERT ON Comentarios
-FOR EACH ROW
-EXECUTE FUNCTION validar_comentario_asignatura_evaluacion();

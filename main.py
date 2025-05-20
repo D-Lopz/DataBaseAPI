@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from jose import jwt, JWTError
+from database import DB_URL
 from typing import List
 import psycopg2
 import schemas
@@ -28,6 +29,8 @@ import os
 load_dotenv()
 
 app = FastAPI()
+print(f"Conectando a la base de datos: {DB_URL}")
+
 Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
@@ -57,44 +60,40 @@ def get_db():
 # ---------------------- Ruta para sentimiento resumido en dashboard----------------------#
 
 @app.get("/resumen-sentimientos/")
-def obtener_resumen_sentimientos(db: Session = Depends(get_db)):
-    resultados = db.execute(text("SELECT * FROM resumen_sentimientos_global()")).fetchall()
-    return JSONResponse(content = [
-        {"sentimiento": r[0], "total": r[1], "porcentaje": float(r[2])}
-        for r in resultados
-    ], status_code = 201)
+def resumen_sentimientos(db: Session = Depends(get_db)):
+    try:
+        datos = crud.obtener_resumen_sentimientos(db)
+        return JSONResponse(content=datos, status_code=200)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ---------------------- Ruta para sentimientos por docente----------------------#
 
-@app.get("/resumen_sentimientos/{id_docente}", response_model=List[schemas.ResumenSentimientos])
-
-def obtener_resumen(id_docente: int, db: Session = Depends(get_db)):
-
+@app.get("/resumen_sentimientos/nombre/{nombre_docente}", response_model=List[schemas.ResumenSentimientos])
+def obtener_resumen_por_nombre(nombre_docente: str, db: Session = Depends(get_db)):
     try:
         # Llamamos a la función CRUD que interactúa con la base de datos
-        resumen = crud.obtener_resumen_sentimientos(db, id_docente)
+        resumen = crud.obtener_resumen_sentimientos_por_nombre(db, nombre_docente)
 
         if not resumen:
-            raise HTTPException(status_code=404, detail="Resumen de sentimientos no encontrado")
+            raise HTTPException(status_code=404, detail="Resumen de sentimientos no encontrado para este docente")
 
         return resumen
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al obtener el resumen: {str(e)}")
-
+        
 # ---------------------- Rutas para usuarios ----------------------#
 
-@app.post("/usuarios/", response_model=UserResponse)#✅
-
+@app.post("/usuarios/", response_model=UserResponse) # ✅
 def crear_usuario(user: UserCreate, db: Session = Depends(get_db)):
+    resultado = crud.create_user(db, user)
 
-    nuevo = crud.create_user(db, user)
-    if not nuevo:
-        raise HTTPException(status_code=400, detail="No se pudo crear el usuario")
+    if "error" in resultado:
+        return JSONResponse(content=resultado, status_code=400)
 
-    #return nuevo
-    return JSONResponse(content=nuevo, status_code=201) 
+    return JSONResponse(content=resultado, status_code=201)
 
 
 @app.get("/usuarios/{id_usuario}", response_model=UserResponse)#✅
@@ -117,7 +116,6 @@ def actualizar_usuario(user_id: int, user: UserUpdate, db: Session = Depends(get
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
     return actualizado
-
 
 
 @app.delete("/usuarios/{id_usuario}", response_model=dict)
@@ -179,12 +177,7 @@ def eliminar_asignatura(id_asignatura: int, db: Session = Depends(get_db)):
 @app.post("/evaluaciones/", response_model=EvaluacionResponse)
 
 def crear_evaluacion(evaluacion: EvaluacionCreate, db: Session = Depends(get_db)):
-    creada = crud.create_evaluacion(db, evaluacion)
-
-    if creada is None:
-        raise HTTPException(status_code=404, detail="Evaluación no encontrada")
-
-    return JSONResponse(content=creada, status_code=201)
+    return crud.create_evaluacion(db, evaluacion)
 
 
 @app.get("/evaluaciones/{id_evaluacion}", response_model=EvaluacionResponse)
@@ -220,24 +213,17 @@ def eliminar_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
 @app.post("/comentarios/", response_model=ComentarioResponse)
 
 def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)):
-
-    try:
-        creada = crud.create_comentario(db, comentario)
-        return JSONResponse(content=creada, status_code=201)
-
-    except Exception as e:
-        # Opcional: log del error
-        print(f"Error al crear comentario: {e}")
-        raise HTTPException(status_code=500, detail="Error al procesar el comentario")
+    return crud.create_comentario(db, comentario)
 
 @app.get("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 
 def obtener_comentario(id_comentario: int, db: Session = Depends(get_db)):
     comentario = crud.get_comentario(db, id_comentario)
-
+    
     if comentario is None:
         raise HTTPException(status_code=404, detail="Comentario no encontrado")
-    return comentario
+    return comentario  # FastAPI convierte a JSON usando Pydantic
+
 
 
 @app.put("/comentarios/{id_comentario}", response_model=ComentarioResponse)

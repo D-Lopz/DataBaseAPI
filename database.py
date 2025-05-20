@@ -7,8 +7,10 @@ import os
 # Cargar variables desde .env
 load_dotenv()
 
-# Usar variable de entorno o fallback local
-DB_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/nlp_comentarios")
+# Usar la cadena de conexión del entorno
+DB_URL = os.getenv("DATABASE_URL")
+print("DATABASE_URL cargada:", DB_URL)
+
 
 # Crear el motor de la base de datos
 engine = create_engine(DB_URL)

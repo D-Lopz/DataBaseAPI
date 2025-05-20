@@ -1,5 +1,6 @@
 from models import User, Asignatura, Comentario, Reporte
 from schemas import UserUpdate, ComentarioUpdate
+from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from chat.chat import chat_bot
@@ -10,16 +11,26 @@ import re
 
 # --------------------- Sentimientos por docente --------------------- #
 
+def obtener_resumen_sentimientos(db):
+    try:
+        resultados = db.execute(text("CALL resumen_sentimientos_global()")).fetchall()
+        return [
+            {"sentimiento": r[0], "total": r[1], "porcentaje": float(r[2])}
+            for r in resultados
+        ]
+    except Exception as e:
+        raise Exception(f"Error al obtener resumen de sentimientos: {str(e)}")
 
-def obtener_resumen_sentimientos(db: Session, id_docente: int):
+# --------------------- Sentimientos por docente --------------------- #
 
-    # Ejecutamos la función en la base de datos
+
+def obtener_resumen_sentimientos_por_nombre(db: Session, nombre_docente: str):
+
     result = db.execute(
-        text("SELECT * FROM ObtenerResumenSentimientosPorDocente(:id_docente)"),
-        {"id_docente": id_docente}
+        text("CALL resumen_sentimientos_por_nombre_docente(:nombre_docente)"),
+        {"nombre_docente": nombre_docente}
     ).fetchall()
 
-    # Convertimos el resultado en un formato de lista de diccionarios
     resumen = []
     for row in result:
         resumen.append({
@@ -41,27 +52,31 @@ def obtener_resumen_sentimientos(db: Session, id_docente: int):
 
 def get_user(db: Session, user_id: int):
 
-    result = db.execute(text("SELECT * FROM LeerUsuario(:id)"), {"id": user_id})
+    result = db.execute(text("CALL LeerUsuario(:id)"), {"id": user_id})
     return result.fetchone()
 
 
 def create_user(db: Session, user):
+    try:
+        db.execute(text("""
+            CALL CrearUsuario(:nombre, :email, :rol, :contrasena)
+        """), {
+            "nombre": user.nombre,
+            "email": user.email,
+            "rol": user.rol,
+            "contrasena": user.contrasena
+        })
+        db.commit()
+        return {"message": "Usuario creado con éxito"}
+    except DBAPIError as e:
+        # Aquí capturamos el error de la base (trigger o cualquier fallo)
+        # Sacamos el mensaje original del error para pasarlo arriba
+        error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+        return {"error": error_msg}
     
-    db.execute(text("""
-        CALL CrearUsuario(:nombre, :email, :rol, :contrasena)
-    """), {
-        "nombre": user.nombre,
-        "email": user.email,
-        "rol": user.rol,
-        "contrasena": user.contrasena
-    })
-    db.commit()
-    return {"message": "Usuario creado con éxito"}
-
 
 def update_user(db: Session, user_id: int, user_update: UserUpdate):
     try:
-        # Ejecutar el procedimiento almacenado
         db.execute(text("""
             CALL ActualizarUsuario(:id_usuario, :nombre, :email, :rol, :contrasena)
         """), {
@@ -71,19 +86,25 @@ def update_user(db: Session, user_id: int, user_update: UserUpdate):
             "rol": user_update.rol,
             "contrasena": user_update.contrasena
         })
-        
-        # Realizar commit para guardar los cambios en la base de datos
         db.commit()
-        
-        result = db.execute(text("SELECT * FROM LeerUsuario(:id)"), {"id": user_id})
+
+        result = db.execute(text("CALL LeerUsuario(:id)"), {"id": user_id})
         return result.fetchone()
 
     except Exception as e:
-        # Si ocurre un error, realizar rollback de la transacción
         db.rollback()
-        # Log del error
-        print(f"Error al actualizar usuario: {e}")
-        return {"error": str(e)}
+        error_msg = str(e)
+
+        # Extraer el mensaje personalizado del error SQL (entre comillas simples después del código 1644)
+        match = re.search(r"1644, '(.+?)'", error_msg)
+        if match:
+            clean_msg = match.group(1)
+        else:
+            clean_msg = error_msg  # Si no se encuentra, mostrar el error completo
+
+        print(f"Error al actualizar usuario: {clean_msg}")
+        raise HTTPException(status_code=400, detail=clean_msg)
+
 
 
 def delete_user(db, user_id: int):
@@ -106,7 +127,7 @@ def delete_user(db, user_id: int):
 # Obtener todas las asignaturas
 def get_asignatura(db: Session, asignatura_id: int):
     
-    result = db.execute(text("SELECT * FROM LeerAsignatura(:id)"), {"id": asignatura_id})
+    result = db.execute(text("CALL LeerAsignatura(:id)"), {"id": asignatura_id})
     return result.fetchone()
 
 
@@ -149,21 +170,29 @@ def delete_asignatura(db: Session, asignatura_id: int):
 # Obtener todas las evaluaciones
 def get_evaluacion(db: Session, evaluacion_id: int):
 
-    result = db.execute(text("SELECT * FROM LeerEvaluacion(:id)"), {"id": evaluacion_id})
+    result = db.execute(text("CALL LeerEvaluacion(:id)"), {"id": evaluacion_id})
     return result.fetchone()
 
 # Crear una evaluación
+
 def create_evaluacion(db: Session, evaluacion):
-    db.execute(text("""
-        CALL CrearEvaluacion(:fecha_inicio, :fecha_fin, :estado, :descripcion)
-    """), {
-        "fecha_inicio": evaluacion.fecha_inicio,
-        "fecha_fin": evaluacion.fecha_fin,
-        "estado": evaluacion.estado,
-        "descripcion": evaluacion.descripcion
-    })
-    db.commit()
-    return {"message": "Evaluación creada con éxito"}
+    try:
+        db.execute(text("""
+            CALL CrearEvaluacion(:fecha_inicio, :fecha_fin, :estado, :descripcion)
+        """), {
+            "fecha_inicio": evaluacion.fecha_inicio,
+            "fecha_fin": evaluacion.fecha_fin,
+            "estado": evaluacion.estado,
+            "descripcion": evaluacion.descripcion
+        })
+        db.commit()
+        return {"message": "Evaluación creada con éxito"}
+    
+    except DBAPIError as e:
+        db.rollback()
+        error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+        raise HTTPException(status_code=400, detail=error_msg)
+
 
 # Actualizar una evaluación
 def update_evaluacion(db: Session, evaluacion_id: int, evaluacion_update):
@@ -190,28 +219,47 @@ def delete_evaluacion(db: Session, evaluacion_id: int):
 
 # Obtener todos los comentarios de una evaluación
 def get_comentario(db: Session, comentario_id: int):
-    result = db.execute(text("SELECT * FROM LeerComentario(:id_comentario)"), {"id_comentario": comentario_id})
-    return result.fetchone()
+    result = db.execute(text("CALL LeerComentario(:id_comentario)"), {"id_comentario": comentario_id})
+    row = result.fetchone()
+    if row is None:
+        return None
+    return {
+        "id_comentario": row.id_comentario,
+        "id_estudiante": row.id_estudiante,
+        "id_docente": row.id_docente,
+        "id_asignatura": row.id_asignatura,
+        "id_evaluacion": row.id_evaluacion,
+        "comentario": row.comentario,
+        "fecha_creacion": row.fecha_creacion,
+        "sentimiento": None  # o algún valor por defecto
+    }
+
+
 
 # Crear un comentario
+
 def create_comentario(db: Session, comentario):
+    try:
+        sentimiento = chat_bot(comentario.comentario)
 
-    # Obtener el sentimiento utilizando la función chat_bot
-    sentimiento = chat_bot(comentario.comentario)
+        db.execute(text("""
+            CALL InsertarComentario(:idEst, :idDoc, :idAsig, :idEval, :comentario, :sentimiento)
+        """), {
+            "idEst": comentario.id_estudiante,
+            "idDoc": comentario.id_docente,
+            "idAsig": comentario.id_asignatura,
+            "idEval": comentario.id_evaluacion,
+            "comentario": comentario.comentario,
+            "sentimiento": sentimiento
+        })
+        db.commit()
+        return {"message": "Comentario creado con éxito"}
 
-    # Insertar el comentario y el sentimiento en la base de datos
-    db.execute(text("""
-        CALL InsertarComentario(:idEst, :idDoc, :idAsig, :idEval, :comentario, :sentimiento)
-    """), {
-        "idEst": comentario.id_estudiante,
-        "idDoc": comentario.id_docente,
-        "idAsig": comentario.id_asignatura,
-        "idEval": comentario.id_evaluacion,
-        "comentario": comentario.comentario,
-        "sentimiento": sentimiento  # Pasamos el sentimiento analizado
-    })
-    db.commit()
-    return {"message": "Comentario creado con éxito"}
+    except DBAPIError as e:
+        db.rollback()
+        # Captura y lanza el mensaje del trigger
+        error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
+        raise HTTPException(status_code=400, detail=error_msg)
 
 
 def update_comentario(db: Session, comentario_id: int, comentario_update: ComentarioUpdate):
