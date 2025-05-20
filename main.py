@@ -1,10 +1,10 @@
 from schemas import (
-    UserCreate, UserResponse, UserUpdate,
+    LoginRequest, UserCreate, UserResponse, UserUpdate,
     AsignaturaCreate, AsignaturaResponse, AsignaturaUpdate,
     EvaluacionCreate, EvaluacionResponse, EvaluacionUpdate,
     ComentarioCreate, ComentarioResponse, ComentarioUpdate
 )
-from JWTKeys import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, pwd_context, oauth2_scheme
+from JWTKeys import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, pwd_context, oauth2_scheme
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from sqlalchemy.exc import DBAPIError, IntegrityError
 from fastapi import FastAPI, Depends, HTTPException
@@ -56,6 +56,26 @@ def get_db():
 
     finally:
         db.close()
+
+
+# ---------------------- Ruta para login----------------------#
+
+
+@app.post("/login")
+
+async def login(data: LoginRequest, db: Session = Depends(get_db)):
+    user = crud.get_user_by_email(db, data.email)
+    if not user:
+        raise HTTPException(status_code=401, detail="Usuario no encontrado")
+
+    if data.password != user.contrasena:
+        raise HTTPException(status_code=401, detail="Contraseña incorrecta")
+
+    access_token = create_access_token(
+        data={"sub": user.email, "rol": user.rol}
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
 
 # ---------------------- Ruta para sentimiento resumido en dashboard----------------------#
 

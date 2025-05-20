@@ -1,5 +1,6 @@
 from models import User, Asignatura, Comentario, Reporte
 from schemas import UserUpdate, ComentarioUpdate
+from passlib.context import CryptContext
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -9,7 +10,21 @@ from database import Base
 import schemas
 import re
 
+
 # --------------------- Sentimientos por docente --------------------- #
+
+
+def get_user_by_email(db: Session, email: str):
+
+    result = db.execute(
+        text("CALL obtener_usuario_por_email(:email)"),
+        {"email": email}
+    )
+    return result.mappings().fetchone()
+
+
+# --------------------- Sentimientos por administrador --------------------- #
+
 
 def obtener_resumen_sentimientos(db):
     try:
@@ -20,6 +35,7 @@ def obtener_resumen_sentimientos(db):
         ]
     except Exception as e:
         raise Exception(f"Error al obtener resumen de sentimientos: {str(e)}")
+
 
 # --------------------- Sentimientos por docente --------------------- #
 

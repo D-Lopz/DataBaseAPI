@@ -769,7 +769,7 @@ DELIMITER ;
 
 DELIMITER $$
 
-CREATE TRIGGER trigger_validar_usuario_update
+CREATE TRIGGER trigger_validar_usuario_update 
 BEFORE UPDATE ON Usuarios
 FOR EACH ROW
 BEGIN
@@ -935,13 +935,13 @@ DELIMITER ;
 -- Vistas
 
 -- Vista para que solo aparezcan los comentarios al seleccionar docente
-
 CREATE OR REPLACE VIEW VistaComentariosPorDocente AS
 SELECT
   u.nombre                AS nombre_docente,
   a.nombre_asignatura     AS asignatura,
   c.comentario,
-  c.fecha_creacion
+  c.fecha_creacion,
+  c.sentimiento           AS sentimiento
 FROM Comentarios c
 JOIN Usuarios u        ON c.id_docente = u.id_usuario
 JOIN Docente d         ON d.id_docente = u.id_usuario

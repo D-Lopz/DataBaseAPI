@@ -4,7 +4,12 @@ from datetime import date
 from database import Base
 from typing import List
 
-#Esquema para sentimientos
+# Login
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 
 # Definimos el esquema para la respuesta
 class ResumenSentimientos(BaseModel):
