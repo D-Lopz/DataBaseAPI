@@ -215,6 +215,7 @@ def eliminar_evaluacion(id_evaluacion: int, db: Session = Depends(get_db)):
 def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)):
     return crud.create_comentario(db, comentario)
 
+
 @app.get("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 
 def obtener_comentario(id_comentario: int, db: Session = Depends(get_db)):
@@ -222,8 +223,19 @@ def obtener_comentario(id_comentario: int, db: Session = Depends(get_db)):
     
     if comentario is None:
         raise HTTPException(status_code=404, detail="Comentario no encontrado")
-    return comentario  # FastAPI convierte a JSON usando Pydantic
+    return comentario
 
+
+@app.get("/docentes")
+
+def listar_docentes(db: Session = Depends(get_db)):
+    docentes = crud.get_docentes(db)
+    return [{"id": row.id_docente, "nombre": row.nombre} for row in docentes]
+
+
+@app.get("/comentarios/nombre/{nombre_docente}")
+def comentarios_docente(nombre_docente: str, db: Session = Depends(get_db)):
+    return crud.get_comentarios_por_docente(db, nombre_docente)
 
 
 @app.put("/comentarios/{id_comentario}", response_model=ComentarioResponse)

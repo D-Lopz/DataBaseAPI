@@ -231,9 +231,40 @@ def get_comentario(db: Session, comentario_id: int):
         "id_evaluacion": row.id_evaluacion,
         "comentario": row.comentario,
         "fecha_creacion": row.fecha_creacion,
-        "sentimiento": None  # o algún valor por defecto
+        "sentimiento": row.sentimiento if row.sentimiento is not None else "No analizado"
     }
 
+
+# Listar docentes
+
+def get_docentes(db: Session):
+    result = db.execute(text("""
+        SELECT u.id_usuario AS id_docente, u.nombre 
+        FROM Usuarios u
+        JOIN Docente d ON u.id_usuario = d.id_docente;
+    """))
+    return result.fetchall()
+
+
+# Comentarios por docente
+
+def get_comentarios_por_docente(db: Session, nombre_docente: str):
+    query = text("""
+        SELECT asignatura, comentario, fecha_creacion
+        FROM VistaComentariosPorDocente
+        WHERE nombre_docente = :nombre_docente
+    """)
+    result = db.execute(query, {"nombre_docente": nombre_docente})
+    rows = result.fetchall()
+
+    comentarios = []
+    for row in rows:
+        comentarios.append({
+            "asignatura": row.asignatura,
+            "comentario": row.comentario,
+            "fecha_creacion": row.fecha_creacion
+        })
+    return comentarios
 
 
 # Crear un comentario
@@ -263,6 +294,9 @@ def create_comentario(db: Session, comentario):
 
 
 def update_comentario(db: Session, comentario_id: int, comentario_update: ComentarioUpdate):
+
+    sentimiento = chat_bot(comentario_update.comentario)
+
     db.execute(text("""
         CALL ActualizarComentario(:id, :id_est, :id_doc, :id_asig, :id_eval, :comentario)
     """), {
@@ -271,7 +305,8 @@ def update_comentario(db: Session, comentario_id: int, comentario_update: Coment
         "id_doc": comentario_update.id_docente,
         "id_asig": comentario_update.id_asignatura,
         "id_eval": comentario_update.id_evaluacion,
-        "comentario": comentario_update.contenido
+        "comentario": comentario_update.comentario,
+        "sentimiento": sentimiento
     })
     db.commit()
     return {"message": "Comentario actualizado con éxito"}
