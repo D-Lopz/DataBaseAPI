@@ -258,6 +258,20 @@ VALUES
 
 -- PROCEDIMIENTOS ALMACENADOS
 
+-- Validar Login
+DELIMITER $$
+
+CREATE PROCEDURE obtener_usuario_por_email (
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    SELECT id_usuario, nombre, rol, contrasena, email
+    FROM Usuarios
+    WHERE email = p_email;
+END$$
+
+DELIMITER ;
+
 -- Usuarios
 DELIMITER //
 
