@@ -12,20 +12,22 @@ from fastapi.middleware.cors import CORSMiddleware
 from database import SessionLocal, engine, Base
 from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine, text
-from passlib.context import CryptContext
 from datetime import datetime, timedelta
+from passlib.context import CryptContext
+from schemas import ResumenSentimientos
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from jose import jwt, JWTError
+from typing import List, Dict
 from database import DB_URL
-from typing import List
 import psycopg2
 import schemas
 import crud
 import re
 import os
 
+ 
 load_dotenv()
 
 app = FastAPI()
@@ -56,6 +58,25 @@ def get_db():
 
     finally:
         db.close()
+
+
+# ---------------------- Ruta para traer docentes por estudiantes ----------------------#
+
+
+@app.get("/docentes-por-estudiante", response_model=List[ResumenSentimientos])
+def ruta_docentes_por_estudiante(db: Session = Depends(get_db)):
+    try:
+        return crud.obtener_docentes_por_estudiante(db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/docentes-por-estudiante/{id_estudiante}", response_model=List[ResumenSentimientos])
+def ruta_docentes_de_estudiante(id_estudiante: int, db: Session = Depends(get_db)):
+    try:
+        return crud.obtener_docentes_de_estudiante(db, id_estudiante)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ---------------------- Ruta para login----------------------#

@@ -5,10 +5,34 @@ from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from chat.chat import chat_bot
+from typing import List, Dict
 from sqlalchemy import text
 from database import Base
 import schemas
 import re
+
+# --------------------- Docentes por estudiante --------------------- #
+
+from sqlalchemy import text
+
+def obtener_docentes_por_estudiante(db: Session) -> List[Dict]:
+    try:
+        result = db.execute(text("CALL obtener_docentes_por_estudiante()"))
+        rows = result.fetchall()
+        datos = [dict(row._mapping) for row in rows]
+        return datos
+    
+    except Exception as e:
+        raise Exception(f"Error al ejecutar el procedimiento: {str(e)}")
+
+def obtener_docentes_de_estudiante(db: Session, id_estudiante: int) -> List[Dict]:
+    try:
+        result = db.execute(text("CALL obtener_docentes_de_estudiante(:id)"), {"id": id_estudiante})
+        rows = result.fetchall()
+        datos = [dict(row._mapping) for row in rows]
+        return datos
+    except Exception as e:
+        raise Exception(f"Error al ejecutar el procedimiento con parámetro: {str(e)}")
 
 
 # --------------------- Sentimientos por docente --------------------- #

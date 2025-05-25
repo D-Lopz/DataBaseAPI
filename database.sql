@@ -258,6 +258,51 @@ VALUES
 
 -- PROCEDIMIENTOS ALMACENADOS
 
+-- Obtener docentes por estudiantes
+
+DELIMITER $$
+
+CREATE PROCEDURE obtener_docentes_por_estudiante()
+BEGIN
+    SELECT 
+        e.id_estudiante,
+        u.nombre AS nombre_docente,
+        d.id_docente,
+        a.id_asignatura,
+        a.nombre_asignatura
+    FROM Estudiante e
+    JOIN ME me ON e.id_estudiante = me.id_estudiante
+    JOIN Asignaturas a ON me.id_asignatura = a.id_asignatura
+    JOIN MDS mds ON a.id_asignatura = mds.id_asignatura
+    JOIN Docente d ON mds.id_docente = d.id_docente
+    JOIN Usuarios u ON d.id_docente = u.id_usuario;
+END$$
+
+DELIMITER ;
+
+-- Docentes por estudiante:id
+
+DELIMITER $$
+
+CREATE PROCEDURE obtener_docentes_de_estudiante(IN estudiante_id INT)
+BEGIN
+    SELECT 
+        e.id_estudiante,
+        u_docente.id_usuario AS id_docente,
+        u_docente.nombre AS nombre_docente,
+        a.id_asignatura,
+        a.nombre_asignatura
+    FROM ME me
+    JOIN Asignaturas a ON me.id_asignatura = a.id_asignatura
+    JOIN MDS mds ON mds.id_asignatura = a.id_asignatura
+    JOIN Docente d ON mds.id_docente = d.id_docente
+    JOIN Usuarios u_docente ON d.id_docente = u_docente.id_usuario
+    JOIN Estudiante e ON me.id_estudiante = e.id_estudiante
+    WHERE e.id_estudiante = estudiante_id;
+END$$
+
+DELIMITER ;
+
 -- Validar Login
 DELIMITER $$
 

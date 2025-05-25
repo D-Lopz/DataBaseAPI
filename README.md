@@ -31,7 +31,7 @@ pip install -r requirements.txt
 
 4. Ejecuta el servidor:
 ```bash
-uvicorn main:app --reload
+python -m uvicorn main:app --reload
 ```
 
 ---

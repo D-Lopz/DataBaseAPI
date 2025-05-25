@@ -1,17 +1,15 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
-from database import Base
-from typing import List
 
-# Login
+# --- Login ---
 
 class LoginRequest(BaseModel):
     email: str
     password: str
 
+# --- Resumen Sentimientos ---
 
-# Definimos el esquema para la respuesta
 class ResumenSentimientos(BaseModel):
     id_docente: int
     nombre_docente: str
@@ -23,10 +21,9 @@ class ResumenSentimientos(BaseModel):
     negativos: int
 
     class Config:
-        from_attributes = True  # Esto permite que FastAPI utilice los modelos de SQLAlchemy directamente
+        from_attributes = True
 
-
-# CRUD para usuarios
+# --- CRUD Usuarios ---
 
 class UserBase(BaseModel):
     nombre: str
@@ -37,10 +34,10 @@ class UserCreate(UserBase):
     contrasena: str
 
 class UserUpdate(BaseModel):
-    nombre: str | None = None
-    email: str | None = None
-    rol: str | None = None
-    contrasena: str | None = None
+    nombre: Optional[str] = None
+    email: Optional[str] = None
+    rol: Optional[str] = None
+    contrasena: Optional[str] = None
 
 class UserResponse(UserBase):
     id_usuario: int
@@ -48,10 +45,9 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
-# CRUD para asignaturas
+# --- CRUD Asignaturas ---
 
 class AsignaturaBase(BaseModel):
-
     nombre_asignatura: str
     id_docente: int
 
@@ -59,9 +55,8 @@ class AsignaturaCreate(AsignaturaBase):
     pass
 
 class AsignaturaUpdate(BaseModel):
-
-    nombre_asignatura: str | None = None
-    docente_id: int | None = None
+    nombre_asignatura: Optional[str] = None
+    id_docente: Optional[int] = None  # unificado nombre con la base
 
 class AsignaturaResponse(AsignaturaBase):
     id_asignatura: int
@@ -69,26 +64,22 @@ class AsignaturaResponse(AsignaturaBase):
     class Config:
         from_attributes = True
 
-
-# CRUD para evaluaciones
+# --- CRUD Evaluaciones ---
 
 class EvaluacionBase(BaseModel):
-
     fecha_inicio: date
-    fecha_fin: date     
-    estado: str        
-    descripcion: str   
+    fecha_fin: date
+    estado: str
+    descripcion: str
 
 class EvaluacionCreate(EvaluacionBase):
-
     pass
 
 class EvaluacionUpdate(BaseModel):
-
-    fech_inicio: date | None = None
-    fech_fin: date | None = None
-    estado_e: str | None = None
-    descripcion_e: str | None = None
+    fecha_inicio: Optional[date] = None
+    fecha_fin: Optional[date] = None
+    estado: Optional[str] = None
+    descripcion: Optional[str] = None
 
 class EvaluacionResponse(EvaluacionBase):
     id_evaluacion: int
@@ -96,25 +87,24 @@ class EvaluacionResponse(EvaluacionBase):
     class Config:
         from_attributes = True
 
-
-# CRUD para comentarios
+# --- CRUD Comentarios ---
 
 class ComentarioBase(BaseModel):
     id_estudiante: int
-    id_docente: int     
-    id_asignatura: int    
-    id_evaluacion: int   
-    comentario: str       
+    id_docente: int
+    id_asignatura: int
+    id_evaluacion: int
+    comentario: str
 
 class ComentarioCreate(ComentarioBase):
     pass
 
 class ComentarioUpdate(BaseModel):
-    id_estudiante: int
-    id_docente: int     
-    id_asignatura: int    
-    id_evaluacion: int   
-    comentario: str 
+    id_estudiante: Optional[int] = None
+    id_docente: Optional[int] = None
+    id_asignatura: Optional[int] = None
+    id_evaluacion: Optional[int] = None
+    comentario: Optional[str] = None
 
 class ComentarioResponse(ComentarioBase):
     id_comentario: int

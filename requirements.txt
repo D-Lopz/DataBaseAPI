@@ -9,3 +9,5 @@ fastapi[all]
 openai
 mysql-connector-python
 alembic
+pymysql
+python-jose
