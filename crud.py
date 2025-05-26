@@ -3,9 +3,9 @@ from schemas import UserUpdate, ComentarioUpdate, ComentarioCreate, ComentarioRe
 from passlib.context import CryptContext
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
+from typing import List, Dict, Any
 from fastapi import HTTPException
 from chat.chat import chat_bot
-from typing import List, Dict
 from sqlalchemy import text
 from database import Base
 import schemas
@@ -14,23 +14,36 @@ import re
 # --------------------- Docentes por estudiante --------------------- #
 
 
-def obtener_docentes_por_estudiante(db: Session):
-    # Ejecutamos el procedimiento almacenado
-    result = db.execute(text("CALL obtener_docentes_por_estudiante()"))
-    filas = result.mappings().all()  # 👈 convierte directamente a diccionarios
+def obtener_docentes_por_estudiante(db: Session, id_estudiante: int) -> Dict[str, Any]:
+    result = db.execute(text("CALL docentes_por_estudiantes(:id_estudiante)"), {"id_estudiante": id_estudiante})
+    filas = result.mappings().all()
 
+    if not filas:
+        return {}
 
-    # Convertimos cada fila a diccionario para que Pydantic la entienda bien
-    return filas
+    respuesta = {
+        "id_estudiante": id_estudiante,
+        "docentes": []
+    }
 
-def obtener_docentes_de_estudiante(db: Session, id_estudiante: int) -> List[Dict]:
-    try:
-        result = db.execute(text("CALL obtener_docentes_de_estudiante(:id)"), {"id": id_estudiante})
-        rows = result.fetchall()
-        datos = [dict(row._mapping) for row in rows]
-        return datos
-    except Exception as e:
-        raise Exception(f"Error al ejecutar el procedimiento con parámetro: {str(e)}")
+    docentes_map = {}
+
+    for fila in filas:
+        id_docente = fila["id_docente"]
+        if id_docente not in docentes_map:
+            docentes_map[id_docente] = {
+                "id_docente": id_docente,
+                "nombre_docente": fila["nombre_docente"],
+                "asignaturas": []
+            }
+            respuesta["docentes"].append(docentes_map[id_docente])
+
+        docentes_map[id_docente]["asignaturas"].append({
+            "id_asignatura": fila["id_asignatura"],
+            "nombre_asignatura": fila["nombre_asignatura"]
+        })
+
+    return respuesta
 
 
 # --------------------- Sentimientos por docente --------------------- #

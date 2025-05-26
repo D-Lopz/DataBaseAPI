@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import date
+from typing import List
+
 
 # --- Login ---
 
@@ -12,12 +14,18 @@ class LoginRequest(BaseModel):
 # --- Filtrado de docentes por estudiantes matriculados ---
 
 
-class ComentariosResumenSinSentimientos(BaseModel):
-    id_estudiante: int
-    nombre_docente: str
-    id_docente: int
+class Asignatura(BaseModel):
     id_asignatura: int
     nombre_asignatura: str
+
+class Docente(BaseModel):
+    id_docente: int
+    nombre_docente: str
+    asignaturas: List[Asignatura]
+
+class EstudianteDocentesResponse(BaseModel):
+    id_estudiante: int
+    docentes: List[Docente]
 
 
 # --- Resumen Sentimientos ---
@@ -100,8 +108,6 @@ class EvaluacionResponse(EvaluacionBase):
         from_attributes = True
 
 # --- CRUD Comentarios ---
-from pydantic import BaseModel
-from typing import Optional
 
 class ComentarioBase(BaseModel):
     id_estudiante: int

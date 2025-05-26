@@ -2,7 +2,8 @@ from schemas import (
     LoginRequest, UserCreate, UserResponse, UserUpdate,
     AsignaturaCreate, AsignaturaResponse, AsignaturaUpdate,
     EvaluacionCreate, EvaluacionResponse, EvaluacionUpdate,
-    ComentarioCreate, ComentarioResponse, ComentarioUpdate
+    ComentarioCreate, ComentarioResponse, ComentarioUpdate,
+    EstudianteDocentesResponse
 )
 from JWTKeys import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, pwd_context, oauth2_scheme
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
@@ -14,7 +15,6 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import create_engine, text
 from datetime import datetime, timedelta
 from passlib.context import CryptContext
-from schemas import ResumenSentimientos
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -60,23 +60,17 @@ def get_db():
         db.close()
 
 
-# ---------------------- Ruta para traer docentes por estudiantes ----------------------#
+# ---------------------- Ruta para traer docentes por estudiante:id ----------------------#
 
 
-@app.get("/docentes-por-estudiante", response_model=List[ResumenSentimientos])
-def ruta_docentes_por_estudiante(db: Session = Depends(get_db)):
-    try:
-        return crud.obtener_docentes_por_estudiante(db)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+@app.get("/estudiantes/{id_estudiante}/docentes_asignaturas", response_model=EstudianteDocentesResponse)
+def docentes_por_estudiante(id_estudiante: int, db: Session = Depends(get_db)):
+    resultado = crud.obtener_docentes_por_estudiante(db, id_estudiante)
 
+    if not resultado:
+        raise HTTPException(status_code=404, detail="No se encontraron docentes ni asignaturas para este estudiante.")
 
-@app.get("/docentes-por-estudiante/{id_estudiante}", response_model=List[ResumenSentimientos])
-def ruta_docentes_de_estudiante(id_estudiante: int, db: Session = Depends(get_db)):
-    try:
-        return crud.obtener_docentes_de_estudiante(db, id_estudiante)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    return resultado
 
 
 # ---------------------- Ruta para login----------------------#
