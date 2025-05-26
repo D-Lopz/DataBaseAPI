@@ -58,7 +58,7 @@ python -m uvicorn main:app --reload
 ## 🚀 Tecnologías utilizadas
 
 - [FastAPI](https://fastapi.tiangolo.com/) – Framework web moderno, rápido y eficiente.
-- [PostgreSQL](https://www.postgresql.org/) – Base de datos relacional robusta.
+- [MySQL](https://dev.mysql.com/downloads/installer/) – Base de datos relacional robusta.
 - [SQLAlchemy](https://www.sqlalchemy.org/) – ORM para la gestión de modelos y queries.
 - [Pydantic](https://docs.pydantic.dev/) – Validación de datos y modelos.
 - [JWT](https://jwt.io/) – Autenticación segura basada en tokens.
