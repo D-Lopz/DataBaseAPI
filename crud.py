@@ -296,6 +296,28 @@ def get_docentes(db: Session):
     """))
     return result.fetchall()
 
+# Listar usuarios
+
+# Listar asignaturas
+
+
+def get_asignaturas_con_docentes(db):
+    result = db.execute(text("CALL ObtenerAsignaturasConDocentes();"))
+    # Esto trae todos los resultados del procedimiento
+    asignaturas = result.fetchall()
+    # Opcional: convertir a lista de dicts para que sea más fácil manejar
+    asignaturas_list = [
+        {
+            "id_asignatura": row[0],
+            "nombre_asignatura": row[1],
+            "creditos": row[2],
+            "id_docente": row[3],
+            "nombre_docente": row[4]
+        }
+        for row in asignaturas
+    ]
+    return asignaturas_list
+
 
 # Comentarios por docente
 

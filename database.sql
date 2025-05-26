@@ -583,6 +583,32 @@ END$$
 DELIMITER ;
 
 -- Procedimiento para listar los docentes
+-- Procedimiento para listar los usuarios 
+DELIMITER $$
+
+CREATE PROCEDURE ObtenerTodosLosUsuariosSinContrasena()
+BEGIN
+    SELECT id_usuario, nombre, email, rol, fecha_creacion FROM Usuarios;
+END$$
+
+DELIMITER ;
+
+-- Procedimiento para listar las asignaturas
+DELIMITER $$
+
+CREATE PROCEDURE ObtenerAsignaturasConDocentes()
+BEGIN
+    SELECT 
+        a.id_asignatura,
+        a.nombre_asignatura,
+        a.creditos,
+        u.id_usuario AS id_docente,
+        u.nombre AS nombre_docente
+    FROM Asignaturas a
+    LEFT JOIN Usuarios u ON a.id_docente = u.id_usuario;
+END$$
+
+DELIMITER ;
 
 
 DELIMITER //

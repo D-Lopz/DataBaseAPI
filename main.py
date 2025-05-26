@@ -265,7 +265,7 @@ def obtener_comentario(id_comentario: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Comentario no encontrado")
     return comentario
 
-
+# Listar docentes
 @app.get("/docentes")
 
 def listar_docentes(db: Session = Depends(get_db)):
@@ -273,6 +273,21 @@ def listar_docentes(db: Session = Depends(get_db)):
     return [{"id": row.id_docente, "nombre": row.nombre} for row in docentes]
 
 
+# Listar usuarios
+
+# Listar asignaturas
+
+
+@app.get("/asignaturas")
+def asignaturas_con_docentes(db: Session = Depends(get_db)):
+    try:
+        data = crud.get_asignaturas_con_docentes(db)
+        return {"asignaturas": data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+#
 @app.get("/comentarios/nombre/{nombre_docente}")
 def comentarios_docente(nombre_docente: str, db: Session = Depends(get_db)):
     return crud.get_comentarios_por_docente(db, nombre_docente)
