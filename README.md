@@ -42,7 +42,7 @@ python -m uvicorn main:app --reload
 .
 ├── app/
 │ ├── main.py           # Punto de entrada de la API
-│ ├── database.py       # Conexión a PostgreSQL
+│ ├── database.py       # Conexión a MySQL
 │ ├── models/           # Modelos SQLAlchemy
 │ ├── schemas/          # Pydantic schemas
 │ ├── crud.py           # Procedimientos almacenados y lógica de negocio
