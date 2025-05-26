@@ -174,13 +174,13 @@ VALUES
 (10, 'Biblioteca', 'Administrador', '555-1597', 'marta.vargas@uni.edu');
 
 -- Asignaturas: 5
-INSERT INTO Asignaturas (nombre_asignatura, id_docente)
+INSERT INTO Asignaturas (nombre_asignatura, creditos, id_docente)
 VALUES
-('Algoritmos y estructuras de datos', 4),
-('Bases de datos avanzadas', 5),
-('Sistemas operativos', 6),
-('Redes de computadoras', 7),
-('Inteligencia Artificial', 2);
+('Algoritmos y estructuras de datos', 4, 4),
+('Bases de datos avanzadas', 5, 5),
+('Sistemas operativos', 3, 6),
+('Redes de computadoras', 4, 7),
+('Inteligencia Artificial', 4, 2);
 
 -- Evaluaciones: 5
 INSERT INTO Evaluaciones (fecha_inicio, fecha_fin, estado, descripcion)

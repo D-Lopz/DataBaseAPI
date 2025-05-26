@@ -298,6 +298,23 @@ def get_docentes(db: Session):
 
 # Listar usuarios
 
+
+def get_todos_los_usuarios(db: Session):
+    result = db.execute(text("CALL usuarios_sin_contraseña();"))
+    usuarios = result.fetchall()
+    usuarios_list = [
+        {
+            "id_usuario": row[0],
+            "nombre": row[1],
+            "email": row[2],
+            "rol": row[3],
+            "fecha_creacion": row[4].isoformat() if row[4] else None  # formato ISO para fechas
+        }
+        for row in usuarios
+    ]
+    return usuarios_list
+
+
 # Listar asignaturas
 
 

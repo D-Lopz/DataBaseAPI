@@ -266,6 +266,8 @@ def obtener_comentario(id_comentario: int, db: Session = Depends(get_db)):
     return comentario
 
 # Listar docentes
+
+
 @app.get("/docentes")
 
 def listar_docentes(db: Session = Depends(get_db)):
@@ -274,6 +276,16 @@ def listar_docentes(db: Session = Depends(get_db)):
 
 
 # Listar usuarios
+
+
+@app.get("/usuarios", tags=["Usuarios"])
+def listar_usuarios(db: Session = Depends(get_db)):
+    try:
+        usuarios = crud.get_todos_los_usuarios(db)
+        return {"usuarios": usuarios}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 
 # Listar asignaturas
 
