@@ -1,5 +1,5 @@
 from models import User, Asignatura, Comentario, Reporte
-from schemas import UserUpdate, ComentarioUpdate
+from schemas import UserUpdate, ComentarioUpdate, ComentarioCreate, ComentarioResponse
 from passlib.context import CryptContext
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.orm import Session
@@ -13,17 +13,15 @@ import re
 
 # --------------------- Docentes por estudiante --------------------- #
 
-from sqlalchemy import text
 
-def obtener_docentes_por_estudiante(db: Session) -> List[Dict]:
-    try:
-        result = db.execute(text("CALL obtener_docentes_por_estudiante()"))
-        rows = result.fetchall()
-        datos = [dict(row._mapping) for row in rows]
-        return datos
-    
-    except Exception as e:
-        raise Exception(f"Error al ejecutar el procedimiento: {str(e)}")
+def obtener_docentes_por_estudiante(db: Session):
+    # Ejecutamos el procedimiento almacenado
+    result = db.execute(text("CALL obtener_docentes_por_estudiante()"))
+    filas = result.mappings().all()  # 👈 convierte directamente a diccionarios
+
+
+    # Convertimos cada fila a diccionario para que Pydantic la entienda bien
+    return filas
 
 def obtener_docentes_de_estudiante(db: Session, id_estudiante: int) -> List[Dict]:
     try:
@@ -309,27 +307,34 @@ def get_comentarios_por_docente(db: Session, nombre_docente: str):
 
 
 # Crear un comentario
-
 def create_comentario(db: Session, comentario):
     try:
-        sentimiento = chat_bot(comentario.comentario)
+        # Analiza el sentimiento antes de la inserción
+        sentimiento = chat_bot(comentario.comentario, comentario.promedio)
 
         db.execute(text("""
-            CALL InsertarComentario(:idEst, :idDoc, :idAsig, :idEval, :comentario, :sentimiento)
+            CALL InsertarComentario(:idEst, :idDoc, :idAsig, :comentario, :sentimiento, :promedio)
         """), {
             "idEst": comentario.id_estudiante,
             "idDoc": comentario.id_docente,
             "idAsig": comentario.id_asignatura,
-            "idEval": comentario.id_evaluacion,
             "comentario": comentario.comentario,
-            "sentimiento": sentimiento
+            "sentimiento": sentimiento,
+            "promedio": comentario.promedio
         })
         db.commit()
-        return {"message": "Comentario creado con éxito"}
+
+        return {
+            "id_estudiante": comentario.id_estudiante,
+            "id_docente": comentario.id_docente,
+            "id_asignatura": comentario.id_asignatura,
+            "comentario": comentario.comentario,
+            "sentimiento": sentimiento,
+            "promedio": comentario.promedio
+        }
 
     except DBAPIError as e:
         db.rollback()
-        # Captura y lanza el mensaje del trigger
         error_msg = str(e.orig) if hasattr(e, 'orig') else str(e)
         raise HTTPException(status_code=400, detail=error_msg)
 

@@ -8,6 +8,18 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+
+# --- Filtrado de docentes por estudiantes matriculados ---
+
+
+class ComentariosResumenSinSentimientos(BaseModel):
+    id_estudiante: int
+    nombre_docente: str
+    id_docente: int
+    id_asignatura: int
+    nombre_asignatura: str
+
+
 # --- Resumen Sentimientos ---
 
 class ResumenSentimientos(BaseModel):
@@ -88,13 +100,15 @@ class EvaluacionResponse(EvaluacionBase):
         from_attributes = True
 
 # --- CRUD Comentarios ---
+from pydantic import BaseModel
+from typing import Optional
 
 class ComentarioBase(BaseModel):
     id_estudiante: int
     id_docente: int
     id_asignatura: int
-    id_evaluacion: int
     comentario: str
+    promedio: float  # Aquí está el promedio para análisis de sentimiento
 
 class ComentarioCreate(ComentarioBase):
     pass
@@ -103,8 +117,8 @@ class ComentarioUpdate(BaseModel):
     id_estudiante: Optional[int] = None
     id_docente: Optional[int] = None
     id_asignatura: Optional[int] = None
-    id_evaluacion: Optional[int] = None
     comentario: Optional[str] = None
+    promedio: Optional[float] = None
 
 class ComentarioResponse(ComentarioBase):
     id_comentario: int

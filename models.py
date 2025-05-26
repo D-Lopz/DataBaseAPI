@@ -43,9 +43,8 @@ class Comentario(Base):
     id_estudiante = Column(Integer, ForeignKey('usuarios.id_usuario'))
     id_docente = Column(Integer, ForeignKey('usuarios.id_usuario'))
     id_asignatura = Column(Integer, ForeignKey('asignaturas.id_asignatura'))
-    id_evaluacion = Column(Integer, ForeignKey('evaluaciones.id_evaluacion'))
     comentario = Column(Text, nullable=False)
-    sentimiento = Column(String, nullable=True)  # La nueva columna
+    sentimiento = Column(String, nullable=True)
     fecha_creacion = Column(DateTime, server_default=func.now())
     estudiante = relationship("User", foreign_keys=[id_estudiante])
     docente = relationship("User", foreign_keys=[id_docente])

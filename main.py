@@ -257,8 +257,10 @@ def crear_comentario(comentario: ComentarioCreate, db: Session = Depends(get_db)
     creado = crud.create_comentario(db, comentario)
 
     if creado is None:
-        raise HTTPException(status_code=404, detail="Comentario no encontrada")
+        raise HTTPException(status_code=404, detail="Comentario no encontrado")
+
     return JSONResponse(content=creado, status_code=201)
+
 
 @app.get("/comentarios/{id_comentario}", response_model=ComentarioResponse)
 
