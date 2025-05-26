@@ -3,9 +3,20 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+def convertir_promedio_a_etiqueta(promedio):
+    if promedio <= 2:
+        return "negativo"
+    elif promedio == 3:
+        return "neutral"
+    else:
+        return "positivo"
+
 def chat_bot(comentarioTexto, promedio):
     if not comentarioTexto or not comentarioTexto.strip():
-        return "neutral"
+        return "Entrada vacía. Por favor, proporciona un comentario válido."
+
+    # Convertimos el promedio a una etiqueta para darle contexto al modelo
+    etiqueta_promedio = convertir_promedio_a_etiqueta(promedio)
 
     try:
         response = client.chat.completions.create(
@@ -14,14 +25,18 @@ def chat_bot(comentarioTexto, promedio):
                 {
                     "role": "system",
                     "content": (
-                        "Eres un analista de sentimientos. Analiza tanto el texto como el número de calificación "
-                        "promedio del 1 al 5. Si el promedio es 1 o 2, tiende a ser negativo; si es 4 o 5, positivo. "
-                        "El resultado debe ser 'positivo', 'negativo' o 'neutral'."
+                        "Eres un analista de sentimientos. Analiza tanto la frase del comentario como la categoría del promedio "
+                        "relacionado (positivo, negativo o neutral). El resultado debe ser una única palabra: "
+                        "'positivo', 'negativo' o 'neutral'. Considera que el promedio afecta el análisis solo en un 48%."
                     )
                 },
                 {
                     "role": "user",
-                    "content": f"Comentario: {comentarioTexto}\nPromedio: {promedio}"
+                    "content": (
+                        f"Comentario: \"{comentarioTexto}\"\n"
+                        f"Promedio categorizado como: {etiqueta_promedio}\n"
+                        "Indica el sentimiento resultante:"
+                    )
                 }
             ],
             max_tokens=10,
@@ -29,7 +44,7 @@ def chat_bot(comentarioTexto, promedio):
         )
 
         resultado = response.choices[0].message.content.strip().lower()
-        return resultado if resultado in ["positivo", "negativo", "neutral"] else "neutral"
+        return resultado
 
     except Exception as e:
         return "Comentario no analizado"

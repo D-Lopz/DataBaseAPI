@@ -1,13 +1,14 @@
-uvicorn[standard]==0.29.0
+uvicorn
 python-jose[cryptography]
 python-dotenv==1.0.1
-sqlalchemy==2.0.30
+sqlalchemy
 psycopg2-binary
 pydantic==2.6.4
 passlib[bcrypt]
 fastapi[all]
 openai
-mysql-connector-python
-alembic
+#alembic
 pymysql
 python-jose
+fpdf2
+#pip install -r requirements.txt

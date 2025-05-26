@@ -631,7 +631,7 @@ BEGIN
     DECLARE total_count INT;
 
     -- Calcular total general
-    SELECT COUNT(*) INTO total_count FROM analisis_sentimientos;
+    SELECT COUNT(*) INTO total_count FROM comentarios;
 
     -- Mostrar resumen con porcentaje
     SELECT 
@@ -639,12 +639,12 @@ BEGIN
         COUNT(*) AS total,
         ROUND((COUNT(*) / total_count) * 100, 2) AS porcentaje
     FROM 
-        analisis_sentimientos
+        comentarios
     GROUP BY 
         sentimiento;
 END //
 
-
+DELIMITER;
 
 -- Funciones
 
