@@ -184,7 +184,6 @@ def get_asignatura(db: Session, asignatura_id: int):
 
 # Crear una asignatura
 def create_asignatura(db: Session, asignatura):
-
     db.execute(text("""
         CALL CrearAsignatura(:nombre_asignatura, :id_docente)
     """), {
@@ -192,7 +191,27 @@ def create_asignatura(db: Session, asignatura):
         "id_docente": asignatura.id_docente
     })
     db.commit()
-    return {"message": "Asignatura creada con éxito"}
+
+    # Ahora hacemos el SELECT para devolver la asignatura creada
+    result = db.execute(text("""
+        SELECT * FROM Asignaturas
+        WHERE nombre_asignatura = :nombre_asignatura
+        AND id_docente = :id_docente
+        ORDER BY id_asignatura DESC
+        LIMIT 1
+    """), {
+        "nombre_asignatura": asignatura.nombre_asignatura,
+        "id_docente": asignatura.id_docente
+    })
+
+    row = result.fetchone()
+    if row:
+        return {
+            "id_asignatura": row.id_asignatura,
+            "nombre_asignatura": row.nombre_asignatura,
+            "id_docente": row.id_docente
+        }
+    return None
 
 
 # Actualizar una asignatura
@@ -203,7 +222,7 @@ def update_asignatura(db: Session, asignatura_id: int, asignatura_update):
     """), {
         "id_asignatura": asignatura_id,
         "nombre_asignatura": asignatura_update.nombre_asignatura,
-        "id_docente": asignatura_update.docente_id
+        "id_docente": asignatura_update.id_docente
     })
     db.commit()
     return {"message": "Asignatura actualizada con éxito"}
