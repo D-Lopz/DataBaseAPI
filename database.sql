@@ -64,14 +64,13 @@ CREATE TABLE IF NOT EXISTS Comentarios (
     id_estudiante INT,
     id_docente INT,
     id_asignatura INT,
-    id_evaluacion INT,
+    promedio INT CHECK (promedio BETWEEN 1 AND 5),
     comentario TEXT NOT NULL,
     sentimiento ENUM('positivo', 'negativo', 'neutral'),
     fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_comentario_estudiante FOREIGN KEY (id_estudiante) REFERENCES Usuarios(id_usuario),
     CONSTRAINT fk_comentario_docente FOREIGN KEY (id_docente) REFERENCES Usuarios(id_usuario),
-    CONSTRAINT fk_comentario_asignatura FOREIGN KEY (id_asignatura) REFERENCES Asignaturas(id_asignatura),
-    CONSTRAINT fk_comentario_evaluacion FOREIGN KEY (id_evaluacion) REFERENCES Evaluaciones(id_evaluacion)
+    CONSTRAINT fk_comentario_asignatura FOREIGN KEY (id_asignatura) REFERENCES Asignaturas(id_asignatura)
 );
 
 -- Tabla Analisis_sentimientos
@@ -193,13 +192,13 @@ VALUES
 ('2025-11-01', '2025-11-15', 'Inactivo', 'Evaluación especial.');
 
 -- Comentarios: 5
-INSERT INTO Comentarios (id_estudiante, id_docente, id_asignatura, id_evaluacion, comentario, sentimiento)
-VALUES
-(1, 2, 1, 1, 'Muy buena metodología.', 'positivo'),
-(8, 4, 2, 2, 'El docente explica con claridad.', 'positivo'),
-(9, 5, 3, 3, 'A veces las clases son confusas.', 'negativo'),
-(10, 6, 4, 4, 'Excelente manejo del tema.', 'positivo'),
-(11, 7, 5, 5, 'Podría mejorar la interacción.', 'neutral');
+INSERT INTO Comentarios (id_estudiante, id_docente, id_asignatura, comentario, sentimiento, promedio)
+VALUES 
+(1, 2, 1, 'Muy buena metodología.', 'positivo', 4.5),
+(8, 4, 2, 'El docente explica con claridad.', 'positivo', 4.0),
+(9, 5, 3, 'A veces las clases son confusas.', 'negativo', 2.8),
+(10, 6, 4, 'Excelente manejo del tema.', 'positivo', 4.9),
+(11, 7, 5, 'Podría mejorar la interacción.', 'neutral', 3.2);
 
 -- Análisis de Sentimientos: 5
 INSERT INTO Analisis_sentimientos (id_comentario, sentimiento, resumen, puntuacion)
@@ -276,7 +275,7 @@ BEGIN
     JOIN MDS mds ON a.id_asignatura = mds.id_asignatura
     JOIN Docente d ON mds.id_docente = d.id_docente
     JOIN Usuarios u ON d.id_docente = u.id_usuario;
-END$$
+END;
 
 DELIMITER ;
 
@@ -527,31 +526,32 @@ CREATE PROCEDURE InsertarComentario(
     IN p_id_estudiante INT, 
     IN p_id_docente INT, 
     IN p_id_asignatura INT, 
-    IN p_id_evaluacion INT, 
     IN p_comentario TEXT,
-    IN p_sentimiento TEXT
+    IN p_sentimiento TEXT,
+    IN p_promedio INT
 )
 BEGIN
     INSERT INTO Comentarios (
         id_estudiante, 
         id_docente, 
         id_asignatura, 
-        id_evaluacion, 
         comentario,
-        sentimiento
+        sentimiento,
+        promedio
     )
     VALUES (
         p_id_estudiante, 
         p_id_docente, 
         p_id_asignatura, 
-        p_id_evaluacion, 
         p_comentario,
-        p_sentimiento
+        p_sentimiento,
+        p_promedio
     );
 END;
 //
 
 DELIMITER ;
+
 
 DELIMITER //
 
@@ -605,7 +605,7 @@ DELIMITER $$
 CREATE PROCEDURE ListarNombresDocentes()
 BEGIN
     SELECT u.id_usuario, u.nombre
-    FROM usuario u
+    FROM usuarios u
     JOIN docente d ON u.id_usuario = d.id_usuario
     ORDER BY u.nombre;
 END$$
@@ -852,8 +852,9 @@ END$$
 DELIMITER ;
 
 -- Trigger de inserción de comentarios ✅
-DELIMITER $$
+DROP TRIGGER IF EXISTS validar_comentario;
 
+DELIMITER //
 CREATE TRIGGER validar_comentario
 BEFORE INSERT ON Comentarios
 FOR EACH ROW
@@ -861,13 +862,14 @@ BEGIN
     IF EXISTS (
         SELECT 1 FROM Comentarios
         WHERE id_asignatura = NEW.id_asignatura
-          AND id_evaluacion = NEW.id_evaluacion
           AND id_estudiante = NEW.id_estudiante
+          AND id_docente = NEW.id_docente
     ) THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ya existe un comentario de este estudiante para esta asignatura y evaluación.';
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Ya existe un comentario de este estudiante para esta asignatura y docente.';
     END IF;
-END$$
-
+END;
+//
 DELIMITER ;
 
 -- Trigger para evitar elimiminar un docente con asignatura ✅
@@ -968,27 +970,31 @@ END;
 //
 
 -- Triger para evitar los comentarios nulos
-DELIMITER $$
 
+DELIMITER //
 CREATE TRIGGER evitar_campos_nulos_comentarios_insert
 BEFORE INSERT ON comentarios
 FOR EACH ROW
 BEGIN
-    IF NEW.comentario IS NULL OR NEW.id_evaluacion IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se permiten campos nulos en comentario o id_evaluacion';
+    IF NEW.comentario IS NULL OR NEW.promedio IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se permiten campos nulos en comentario o promedio.';
     END IF;
-END$$
+END;
+//
 
+DELIMITER $$
 CREATE TRIGGER evitar_campos_nulos_comentarios_update
 BEFORE UPDATE ON comentarios
 FOR EACH ROW
 BEGIN
-    IF NEW.comentario IS NULL OR NEW.id_evaluacion IS NULL THEN
-        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'No se permiten campos nulos en comentario o id_evaluacion';
+    IF NEW.comentario IS NULL OR NEW.promedio IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'No se permiten campos nulos en comentario o promedio.';
     END IF;
 END$$
-
 DELIMITER ;
+
 
 
 -- Vistas
@@ -1005,3 +1011,4 @@ FROM Comentarios c
 JOIN Usuarios u        ON c.id_docente = u.id_usuario
 JOIN Docente d         ON d.id_docente = u.id_usuario
 JOIN Asignaturas a     ON c.id_asignatura = a.id_asignatura;
+
