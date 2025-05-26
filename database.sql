@@ -256,51 +256,34 @@ VALUES
 
 
 -- PROCEDIMIENTOS ALMACENADOS
-
--- Obtener docentes por estudiantes
-
-DELIMITER $$
-
-CREATE PROCEDURE obtener_docentes_por_estudiante()
-BEGIN
-    SELECT 
-        e.id_estudiante,
-        u.nombre AS nombre_docente,
-        d.id_docente,
-        a.id_asignatura,
-        a.nombre_asignatura
-    FROM Estudiante e
-    JOIN ME me ON e.id_estudiante = me.id_estudiante
-    JOIN Asignaturas a ON me.id_asignatura = a.id_asignatura
-    JOIN MDS mds ON a.id_asignatura = mds.id_asignatura
-    JOIN Docente d ON mds.id_docente = d.id_docente
-    JOIN Usuarios u ON d.id_docente = u.id_usuario;
-END;
-
-DELIMITER ;
-
 -- Docentes por estudiante:id
 
 DELIMITER $$
 
-CREATE PROCEDURE obtener_docentes_de_estudiante(IN estudiante_id INT)
+CREATE PROCEDURE docentes_por_estudiantes(IN p_id_estudiante INT)
 BEGIN
     SELECT 
-        e.id_estudiante,
-        u_docente.id_usuario AS id_docente,
-        u_docente.nombre AS nombre_docente,
+        me.id_estudiante,
+        u.id_usuario AS id_docente,
+        u.nombre AS nombre_docente,
         a.id_asignatura,
         a.nombre_asignatura
-    FROM ME me
-    JOIN Asignaturas a ON me.id_asignatura = a.id_asignatura
-    JOIN MDS mds ON mds.id_asignatura = a.id_asignatura
-    JOIN Docente d ON mds.id_docente = d.id_docente
-    JOIN Usuarios u_docente ON d.id_docente = u_docente.id_usuario
-    JOIN Estudiante e ON me.id_estudiante = e.id_estudiante
-    WHERE e.id_estudiante = estudiante_id;
-END$$
+    FROM 
+        ME me
+    JOIN 
+        Asignaturas a ON me.id_asignatura = a.id_asignatura
+    JOIN 
+        MDS mds ON a.id_asignatura = mds.id_asignatura
+    JOIN 
+        Docente d ON mds.id_docente = d.id_docente
+    JOIN 
+        Usuarios u ON d.id_docente = u.id_usuario
+    WHERE 
+        me.id_estudiante = p_id_estudiante;
+END $$
 
 DELIMITER ;
+
 
 -- Validar Login
 DELIMITER $$
@@ -600,17 +583,7 @@ END$$
 DELIMITER ;
 
 -- Procedimiento para listar los docentes
-DELIMITER $$
 
-CREATE PROCEDURE ListarNombresDocentes()
-BEGIN
-    SELECT u.id_usuario, u.nombre
-    FROM usuarios u
-    JOIN docente d ON u.id_usuario = d.id_usuario
-    ORDER BY u.nombre;
-END$$
-
-DELIMITER ;
 
 DELIMITER //
 
@@ -1011,4 +984,3 @@ FROM Comentarios c
 JOIN Usuarios u        ON c.id_docente = u.id_usuario
 JOIN Docente d         ON d.id_docente = u.id_usuario
 JOIN Asignaturas a     ON c.id_asignatura = a.id_asignatura;
-
