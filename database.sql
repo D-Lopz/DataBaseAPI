@@ -586,7 +586,7 @@ DELIMITER ;
 -- Procedimiento para listar los usuarios 
 DELIMITER $$
 
-CREATE PROCEDURE ObtenerTodosLosUsuariosSinContrasena()
+CREATE PROCEDURE usuarios_sin_contraseña()
 BEGIN
     SELECT id_usuario, nombre, email, rol, fecha_creacion FROM Usuarios;
 END$$

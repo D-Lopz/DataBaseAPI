@@ -21,7 +21,6 @@ from pydantic import BaseModel
 from jose import jwt, JWTError
 from typing import List, Dict
 from database import DB_URL
-import psycopg2
 import schemas
 import crud
 import re
