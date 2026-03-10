@@ -9,6 +9,8 @@ load_dotenv()
 
 # Usar la cadena de conexión del entorno
 DB_URL = os.getenv("DATABASE_URL")
+if DB_URL.startswith("mysql://"):
+    DB_URL = DB_URL.replace("mysql://", "mysql+pymysql://", 1)
 print("DATABASE_URL cargada:", DB_URL)
 
 
