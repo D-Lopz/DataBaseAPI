@@ -9,4 +9,4 @@ python-dotenv
 passlib[bcrypt]
 openai
 fpdf2
-pydantic==2.6.4
+pydantic>=2.0.0
