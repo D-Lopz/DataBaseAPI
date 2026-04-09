@@ -15,7 +15,14 @@ print("DATABASE_URL cargada:", DB_URL)
 
 
 # Crear el motor de la base de datos
-engine = create_engine(DB_URL)
+engine = create_engine(
+    DB_URL,
+    connect_args={
+        "ssl": {
+            "ca": "/etc/ssl/certs/ca-certificates.crt" # Ruta estándar en Linux/Render
+        }
+    }
+)
 
 # Sesión de SQLAlchemy
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -1,14 +1,12 @@
+fastapi
 uvicorn
-python-jose[cryptography]
-python-dotenv==1.0.1
 sqlalchemy
-psycopg2-binary
-pydantic==2.6.4
-passlib[bcrypt]
-fastapi[all]
-openai
-#alembic
 pymysql
-python-jose
+cryptography
+python-multipart
+python-jose[cryptography]
+python-dotenv
+passlib[bcrypt]
+openai
 fpdf2
-#pip install -r requirements.txt
+pydantic==2.6.4
