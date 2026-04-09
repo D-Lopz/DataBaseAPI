@@ -19,7 +19,10 @@ engine = create_engine(
     DB_URL,
     connect_args={
         "ssl": {
-            "ca": "/etc/ssl/certs/ca-certificates.crt" # Ruta estándar en Linux/Render
+            "check_hostname": False,
+            "ssl_mode": "REQUIRED",
+            # Esto desactiva la verificación estricta que está fallando
+            "fake_user_agent": "Mozilla/5.0" # A veces ayuda con proxies
         }
     }
 )
